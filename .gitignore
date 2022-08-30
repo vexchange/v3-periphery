@@ -1,11 +1,18 @@
-# Compiler files
-cache/
-out/
+# foundry
+/cache
+/out
+/node_modules
 
-# Ignores development broadcast logs
-!/broadcast
-/broadcast/*
-/broadcast/*/31337/
+# slither
+/slither-report.md
 
-# Dotenv file
+# typechain
+/typings
+
+# all .env occurences
 .env
+
+# IDE settings
+/.vscode
+.DS_Store
+
