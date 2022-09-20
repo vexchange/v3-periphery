@@ -1,12 +1,13 @@
 pragma solidity 0.8.17;
 
+import { IWETH } from "src/interfaces/IWETH.sol";
 import { IGenericFactory } from "src/interfaces/IGenericFactory.sol";
 
 interface IReservoirRouter {
 
-    function factory() external pure returns (IGenericFactory);
+    function factory() external view returns (IGenericFactory);
     // do we want this name or do we want a more generic WNATIVE
-    function WETH() external pure returns (address);
+    function WETH() external view returns (IWETH);
 
     /*//////////////////////////////////////////////////////////////////////////
                                 LIQUIDITY METHODS
@@ -17,8 +18,8 @@ interface IReservoirRouter {
 
     // the implementation these two functions take a lower priority
     // will implement when we have the time, and does not block merge
-    function addLiquiditySingle(address pair, address token, uint256 amountIn) external returns (uint256 liquidity);
-    function removeLiquiditySingle(address pair, address token, uint256 lpTokenAmount) external returns (uint256 amount);
+    // function addLiquiditySingle(address pair, address token, uint256 amountIn) external returns (uint256 liquidity);
+    // function removeLiquiditySingle(address pair, address token, uint256 lpTokenAmount) external returns (uint256 amount);
 
     /*//////////////////////////////////////////////////////////////////////////
                                 SWAP METHODS
