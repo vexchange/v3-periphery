@@ -1,0 +1,30 @@
+{
+  "name": "v3-periphery",
+  "version": "0.1.0",
+  "description": "Periphery smart contracts for V3 ",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vexchange/v3-periphery.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vexchange/v3-periphery/issues"
+  },
+  "homepage": "https://github.com/vexchange/v3-periphery#readme",
+  "dependencies": {
+    "@proxima-oss/eslint-config": "6.0.1",
+    "markdownlint-cli": "0.32.2",
+    "prettier": "2.7.1",
+    "solhint": "3.3.7",
+    "ts-node": "10.9.1"
+  }
+}
