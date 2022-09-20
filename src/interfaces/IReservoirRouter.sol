@@ -1,6 +1,12 @@
 pragma solidity 0.8.17;
 
+import { IGenericFactory } from "src/interfaces/IGenericFactory.sol";
+
 interface IReservoirRouter {
+
+    function factory() external pure returns (IGenericFactory);
+    // do we want this name or do we want a more generic WNATIVE
+    function WETH() external pure returns (address);
 
     /*//////////////////////////////////////////////////////////////////////////
                                 LIQUIDITY METHODS
