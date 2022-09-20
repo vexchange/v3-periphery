@@ -1,7 +1,7 @@
-pragma solidity 0.8.17;
+pragma solidity 0.8.13;
 
-import { Test } from "forge-std/Test.sol";
+import "v3-core/test/__fixtures/BaseTest.sol";
 
-contract ReservoirRouterTest {
+contract ReservoirRouterTest is BaseTest {
 
 }
