@@ -2,14 +2,16 @@ pragma solidity 0.8.17;
 
 import { IReservoirRouter } from "src/interfaces/IReservoirRouter.sol";
 
-import { Multicall } from "src/abstract/Multicall.sol";
-import { PeripheryPayments } from "src/abstract/PeripheryPayments.sol";
 import { PeripheryImmutableState } from "src/abstract/PeripheryImmutableState.sol";
+import { PeripheryPayments } from "src/abstract/PeripheryPayments.sol";
+import { DeadlineCheck } from "src/abstract/DeadlineCheck.sol";
+import { Multicall } from "src/abstract/Multicall.sol";
 
 contract ReservoirRouter is
     IReservoirRouter,
     PeripheryImmutableState,
     PeripheryPayments,
+    DeadlineCheck,
     Multicall
 {
     constructor (address aFactory, address aWETH) PeripheryImmutableState(aFactory, aWETH) {}
