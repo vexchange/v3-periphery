@@ -3,12 +3,13 @@ pragma solidity 0.8.17;
 import { IWETH } from "src/interfaces/IWETH.sol";
 import { IReservoirRouter } from "src/interfaces/IReservoirRouter.sol";
 import { IGenericFactory } from "src/interfaces/IGenericFactory.sol";
+import { Multicall } from "src/abstract/Multicall.sol";
 
-contract ReservoirRouter is IReservoirRouter {
+contract ReservoirRouter is IReservoirRouter, Multicall{
     IGenericFactory public factory;
     IWETH public WETH;
 
-    constructor (address aFactory, address payable aWETH) {
+    constructor (address aFactory, address aWETH) {
         factory = IGenericFactory(aFactory);
         WETH = IWETH(aWETH);
     }
