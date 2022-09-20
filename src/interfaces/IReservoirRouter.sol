@@ -32,8 +32,11 @@ interface IReservoirRouter {
                                 QUERY METHODS (VIEW)
     //////////////////////////////////////////////////////////////////////////*/
 
-    function getAmountOut(uint256 curveId, address tokenIn, address tokenOut, uint256 amountIn) external view;
-    function getAmountIn(uint256 curveId, address tokenIn, address tokenOut, uint256 amountIn) external view;
+    function getAmountOut(uint256 curveId, address tokenIn, address tokenOut, uint256 amountIn) external view returns(uint256 amountOut);
+    function getAmountsOut(uint256 curveId, address tokenIn, address tokenOut, uint256 amountIn) external view returns(uint256[] memory amountsOut);
+    function getAmountIn(uint256 curveId, address tokenIn, address tokenOut, uint256 amountOut) external view returns(uint256 amountIn);
+    function getAmountsIn(uint256 curveId, address tokenIn, address tokenOut, uint256 amountOut) external view returns(uint256[] memory amountsIn);
+
     function quoteAddLiquidity(address pair, uint256 amount0, uint256 amount1) external view;
     function quoteRemoveLiquidity(address pair, uint256 lpTokenAmount) external view;
 }
