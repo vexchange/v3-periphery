@@ -12,7 +12,7 @@ import "src/abstract/PeripheryImmutableState.sol";
 
 abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableState {
     receive() external payable {
-        require(msg.sender == WETH, "Not WETH");
+        require(msg.sender == address(WETH), "Not WETH");
     }
 
     /// @inheritdoc IPeripheryPayments
@@ -55,7 +55,7 @@ abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableSta
         address recipient,
         uint256 value
     ) internal {
-        if (token == WETH && address(this).balance >= value) {
+        if (token == address(WETH) && address(this).balance >= value) {
             // pay with WETH
             IWETH(WETH).deposit{value: value}(); // wrap only what is needed to pay
             IWETH(WETH).transfer(recipient, value);
