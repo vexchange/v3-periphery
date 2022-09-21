@@ -15,9 +15,7 @@ library ReservoirLibrary {
     // todo: the original uniswap lib function uses CREATE2 to calculate the address, and avoids an external call
     // however, it is not possible to avoid external call unless factory exposes getByteCode function
     function pairFor(IGenericFactory factory, address tokenA, address tokenB, uint256 curveId) internal view returns (address pair) {
-
         // do we need to check if curveId is valid? Maybe not, it'll just return 0 anyway
-
         pair = factory.getPair(tokenA, tokenB, curveId);
     }
 
@@ -37,6 +35,4 @@ library ReservoirLibrary {
         require(reserveA > 0 && reserveB > 0, "UniswapV2Library: INSUFFICIENT_LIQUIDITY");
         amountB = amountA * reserveB / reserveA;
     }
-
-
 }
