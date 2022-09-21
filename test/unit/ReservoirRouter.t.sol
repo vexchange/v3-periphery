@@ -8,8 +8,8 @@ import { ReservoirRouter } from "src/ReservoirRouter.sol";
 
 contract ReservoirRouterTest is BaseTest
 {
-    ReservoirRouter private _router = new ReservoirRouter(address(_factory), address(0));
     WETH            private _weth   = new WETH();
+    ReservoirRouter private _router = new ReservoirRouter(address(_factory), address(_weth));
 
     function testAddLiquidity_CreatePair_ConstantProduct() external
     {
@@ -38,5 +38,32 @@ contract ReservoirRouterTest is BaseTest
         assertEq(_tokenC.balanceOf(_bob), 0);
         assertEq(_tokenA.balanceOf(address(lPair)), lTokenAMintAmt);
         assertEq(_tokenC.balanceOf(address(lPair)), lTokenCMintAmt);
+    }
+
+    function testAddLiquidity_CreatePair_ConstantProduct_Native() external
+    {
+        // arrange
+        uint256 lTokenAMintAmt = 5000e18;
+        _tokenA.mint(_bob, lTokenAMintAmt);
+        deal(_bob, 10 ether);
+        vm.startPrank(_bob);
+        _tokenA.approve(address(_router), type(uint256).max);
+
+        // act
+        bytes[] memory lData = new bytes[](2);
+        lData[0] = abi.encodeWithSignature("wrapETH(address,uint256)", address(_router), 5 ether);
+        lData[1] = abi.encodeWithSignature(
+            "addLiquidity(address,address,uint256,uint256,uint256,uint256,uint256,address)",
+            address(_weth),
+            address(_tokenA),
+            0,
+            5 ether,
+            lTokenAMintAmt,
+            1e18,
+            1e18,
+            _bob
+        );
+
+        bytes[] memory lResult = _router.multicall{value: 10 ether}(lData);
     }
 }
