@@ -6,7 +6,16 @@ interface IReservoirRouter {
                                 LIQUIDITY METHODS
     //////////////////////////////////////////////////////////////////////////*/
 
-    function addLiquidity(address pair, uint256 amount0In, uint256 amount1In) external returns (uint256 liquidity);
+    function addLiquidity(address tokenA,
+        address tokenB,
+        uint256 curveId,
+        uint amountADesired,
+        uint amountBDesired,
+        uint amountAMin,
+        uint amountBMin,
+        address to
+    ) external returns (uint256 amountA, uint256 amountB, uint256 liquidity);
+
     function removeLiquidity(address pair, uint256 amount0In, uint256 amount1In) external returns (uint256 amount0, uint256 amount1);
 
     // the implementation these two functions take a lower priority
