@@ -14,7 +14,7 @@ interface IReservoirRouter {
         uint amountAMin,
         uint amountBMin,
         address to
-    ) external returns (uint256 amountA, uint256 amountB, uint256 liquidity);
+    ) external payable returns (uint256 amountA, uint256 amountB, uint256 liquidity);
 
     function removeLiquidity(address pair, uint256 amount0In, uint256 amount1In) external returns (uint256 amount0, uint256 amount1);
 

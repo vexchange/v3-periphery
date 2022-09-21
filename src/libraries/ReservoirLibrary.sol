@@ -26,8 +26,6 @@ library ReservoirLibrary {
         (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
     }
 
-
-
     // given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
     // todo: to cater for StablePair as well
     function quote(uint amountA, uint reserveA, uint reserveB) internal pure returns (uint amountB) {

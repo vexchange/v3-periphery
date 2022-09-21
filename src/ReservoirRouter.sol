@@ -11,6 +11,8 @@ import { PeripheryPayments } from "src/abstract/PeripheryPayments.sol";
 import { DeadlineCheck } from "src/abstract/DeadlineCheck.sol";
 import { Multicall } from "src/abstract/Multicall.sol";
 
+import "forge-std/console.sol";
+
 contract ReservoirRouter is
     IReservoirRouter,
     PeripheryImmutableState,
@@ -60,8 +62,7 @@ contract ReservoirRouter is
         uint amountAMin,
         uint amountBMin,
         address to
-    ) external returns (uint256 amountA, uint256 amountB, uint256 liquidity) {
-
+    ) external payable returns (uint256 amountA, uint256 amountB, uint256 liquidity) {
         (amountA, amountB) = _addLiquidity(tokenA, tokenB, curveId, amountADesired, amountBDesired, amountAMin, amountBMin);
 
         address pair = factory.getPair(tokenA, tokenB, curveId);
