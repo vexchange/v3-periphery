@@ -100,5 +100,20 @@ contract ReservoirRouter is
     function getAmountsIn(uint256 curveId, address tokenIn, address tokenOut, uint256 amountOut) external view returns(uint256[] memory amountsIn) {}
 
     function quoteAddLiquidity(address pair, uint256 amount0, uint256 amount1) external view {}
-    function quoteRemoveLiquidity(address pair, uint256 lpTokenAmount) external view {}
+
+    // implementation from solidly
+    function quoteRemoveLiquidity(address tokenA, address tokenB, uint256 curveId, uint256 liquidity) external view
+    returns (uint256 amountA, uint256 amountB) {
+        address pair = factory.getPair(tokenA, tokenB, curveId);
+
+        if (pair == address(0)) {
+            return (0,0);
+        }
+
+        (uint256 reserveA, uint256 reserveB) = ReservoirLibrary.getReserves(factory, tokenA, tokenB, curveId);
+        uint256 totalSupply = IReservoirPair(pair).totalSupply();
+
+        amountA = liquidity * reserveA / totalSupply;
+        amountB = liquidity * reserveB / totalSupply;
+    }
 }

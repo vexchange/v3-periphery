@@ -4,6 +4,7 @@ import "v3-core/test/__fixtures/BaseTest.sol";
 
 import { WETH } from "solmate/tokens/WETH.sol";
 import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
+import { MathUtils } from "v3-core/src/libraries/MathUtils.sol";
 
 import { ReservoirLibrary, IGenericFactory } from "src/libraries/ReservoirLibrary.sol";
 import { ReservoirRouter } from "src/ReservoirRouter.sol";
@@ -184,6 +185,18 @@ contract ReservoirRouterTest is BaseTest
         // assert
     }
 
+    function testQuoteRemoveLiquidity(uint256 aLiquidity) public
+    {
+        // arrange
+        uint256 lLiquidity = bound(aLiquidity, 1, _constantProductPair.balanceOf(_alice));
+
+        // act
+        (uint256 lAmountA, uint256 lAmountB) = _router.quoteRemoveLiquidity(address(_tokenA), address(_tokenB), 0, lLiquidity);
+        testRemoveLiquidity(lLiquidity);
+
+        // assert
+        assertTrue(MathUtils.within1(lAmountA, _tokenA.balanceOf(_alice)));
+    }
 
     function testCheckDeadline(uint256 aDeadline) public
     {
