@@ -63,9 +63,9 @@ contract ReservoirRouter is
         uint amountBMin,
         address to
     ) external payable returns (uint256 amountA, uint256 amountB, uint256 liquidity) {
-        (amountA, amountB) = _addLiquidity(tokenA, tokenB, curveId, amountADesired, amountBDesired, amountAMin, amountBMin);
 
-        address pair = factory.getPair(tokenA, tokenB, curveId);
+        (amountA, amountB) = _addLiquidity(tokenA, tokenB, curveId, amountADesired, amountBDesired, amountAMin, amountBMin);
+        address pair = ReservoirLibrary.pairFor(factory, tokenA, tokenB, curveId);
 
         TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
         TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);
