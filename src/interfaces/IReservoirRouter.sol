@@ -6,7 +6,8 @@ interface IReservoirRouter {
                                 LIQUIDITY METHODS
     //////////////////////////////////////////////////////////////////////////*/
 
-    function addLiquidity(address tokenA,
+    function addLiquidity(
+        address tokenA,
         address tokenB,
         uint256 curveId,
         uint amountADesired,
@@ -16,7 +17,15 @@ interface IReservoirRouter {
         address to
     ) external payable returns (uint256 amountA, uint256 amountB, uint256 liquidity);
 
-    function removeLiquidity(address pair, uint256 amount0In, uint256 amount1In) external returns (uint256 amount0, uint256 amount1);
+    function removeLiquidity(
+        address tokenA,
+        address tokenB,
+        uint256 curveId,
+        uint256 liquidity,
+        uint256 amountAMin,
+        uint256 amountBMin,
+        address to
+    ) external returns (uint256 amountA, uint256 amountB);
 
     // the implementation these two functions take a lower priority
     // will implement when we have the time, and does not block merge

@@ -130,4 +130,36 @@ contract ReservoirRouterTest is BaseTest
         assertEq(_tokenA.balanceOf(address(lPair)), lTokenAMintAmt);
         assertEq(_weth.balanceOf(address(lPair)), lEthMintAmt);
     }
+
+    function testRemoveLiquidity(uint256 aAmountToRemove) external
+    {
+        // arrange
+        uint256 lStartingBalance = _constantProductPair.balanceOf(_alice);
+        uint256 lAmountToRemove = bound(aAmountToRemove, 1, lStartingBalance);
+        vm.startPrank(_alice);
+        _constantProductPair.approve(address(_router), lAmountToRemove);
+
+        // act
+        bytes[] memory lData = new bytes[](1);
+        lData[0] = abi.encodeCall(
+            _router.removeLiquidity,
+            (
+                address(_tokenA),
+                address(_tokenB),
+                0,
+                lAmountToRemove,
+                1,
+                1,
+                address(_alice)
+            )
+        );
+
+        bytes[] memory lResult = _router.multicall(lData);
+
+        // assert
+        (uint256 lAmountA, uint256 lAmountB) = abi.decode(lResult[0], (uint256, uint256));
+        assertEq(_constantProductPair.balanceOf(_alice), lStartingBalance - lAmountToRemove);
+        assertEq(_tokenA.balanceOf(_alice), lAmountA);
+        assertEq(_tokenB.balanceOf(_alice), lAmountB);
+    }
 }
