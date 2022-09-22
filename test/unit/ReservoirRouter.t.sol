@@ -79,6 +79,5 @@ contract ReservoirRouterTest is BaseTest
         assertEq(_weth.balanceOf(_bob), 0);
         assertEq(_tokenA.balanceOf(address(lPair)), lTokenAMintAmt);
         assertEq(_weth.balanceOf(address(lPair)), lEthMintAmt);
-
     }
 }

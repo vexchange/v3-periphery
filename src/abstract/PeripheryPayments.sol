@@ -55,7 +55,7 @@ abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableSta
     /// @param payer The entity that must pay
     /// @param recipient The entity that will receive payment
     /// @param value The amount to pay
-    function pay(
+    function _pay(
         address token,
         address payer,
         address recipient,

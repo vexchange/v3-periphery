@@ -8,7 +8,7 @@ import { TransferHelper } from "src/libraries/TransferHelper.sol";
 
 import { PeripheryImmutableState } from "src/abstract/PeripheryImmutableState.sol";
 import { PeripheryPayments } from "src/abstract/PeripheryPayments.sol";
-import { DeadlineCheck } from "src/abstract/DeadlineCheck.sol";
+import { PredicateHelper } from "src/abstract/PredicateHelper.sol";
 import { Multicall } from "src/abstract/Multicall.sol";
 
 import "forge-std/console.sol";
@@ -17,7 +17,7 @@ contract ReservoirRouter is
     IReservoirRouter,
     PeripheryImmutableState,
     PeripheryPayments,
-    DeadlineCheck,
+    PredicateHelper,
     Multicall
 {
     constructor (address aFactory, address aWETH) PeripheryImmutableState(aFactory, aWETH) {}
