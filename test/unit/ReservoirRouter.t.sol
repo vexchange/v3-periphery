@@ -4,12 +4,61 @@ import "v3-core/test/__fixtures/BaseTest.sol";
 
 import { WETH } from "solmate/tokens/WETH.sol";
 import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
+
+import { ReservoirLibrary, IGenericFactory } from "src/libraries/ReservoirLibrary.sol";
 import { ReservoirRouter } from "src/ReservoirRouter.sol";
 
 contract ReservoirRouterTest is BaseTest
 {
     WETH            private _weth   = new WETH();
     ReservoirRouter private _router = new ReservoirRouter(address(_factory), address(_weth));
+
+    function testAddLiquidity(uint256 aTokenAMintAmt, uint256 aTokenBMintAmt) external
+    {
+        // arrange
+        uint256 lTokenAMintAmt = bound(aTokenAMintAmt, 1, type(uint112).max);
+        uint256 lTokenBMintAmt = bound(aTokenBMintAmt, 1, type(uint112).max);
+        _tokenA.mint(_bob, lTokenAMintAmt);
+        _tokenB.mint(_bob, lTokenBMintAmt);
+
+        vm.startPrank(_bob);
+        _tokenA.approve(address(_router), type(uint256).max);
+        _tokenB.approve(address(_router), type(uint256).max);
+
+        // act
+        bytes[] memory lData = new bytes[](1);
+        lData[0] = abi.encodeCall(
+            _router.addLiquidity,
+            (
+                address(_tokenA),
+                address(_tokenB),
+                0,
+                lTokenAMintAmt,
+                lTokenBMintAmt,
+                1,
+                1,
+                _bob
+            )
+        );
+
+        bytes[] memory lResult = _router.multicall(lData);
+
+        // assert
+        ReservoirPair lPair = ReservoirPair(
+                                ReservoirLibrary.pairFor(
+                                    IGenericFactory(address(_factory)),
+                                    address(_tokenA),
+                                    address(_tokenB),
+                                    0
+                                ));
+        (uint256 lAmountA, uint256 lAmountB, uint256 lLiquidity) = abi.decode(lResult[0], (uint256, uint256, uint256));
+        assertEq(lLiquidity, FixedPointMathLib.sqrt(lAmountA * lAmountB));
+        assertEq(lPair.balanceOf(_bob), lLiquidity);
+        assertEq(_tokenA.balanceOf(_bob), lTokenAMintAmt - lAmountA);
+        assertEq(_tokenB.balanceOf(_bob), lTokenBMintAmt - lAmountB);
+        assertEq(_tokenA.balanceOf(address(lPair)), INITIAL_MINT_AMOUNT + lAmountA);
+        assertEq(_tokenB.balanceOf(address(lPair)), INITIAL_MINT_AMOUNT + lAmountB);
+    }
 
     function testAddLiquidity_CreatePair_ConstantProduct() external
     {
@@ -77,6 +126,7 @@ contract ReservoirRouterTest is BaseTest
         assertEq(lPair.balanceOf(_bob), lLiquidity);
         assertEq(_tokenA.balanceOf(_bob), 0);
         assertEq(_weth.balanceOf(_bob), 0);
+        assertEq(_bob.balance, 5 ether);
         assertEq(_tokenA.balanceOf(address(lPair)), lTokenAMintAmt);
         assertEq(_weth.balanceOf(address(lPair)), lEthMintAmt);
     }
