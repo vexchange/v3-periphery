@@ -13,7 +13,9 @@ contract ReservoirRouterTest is BaseTest
     WETH            private _weth   = new WETH();
     ReservoirRouter private _router = new ReservoirRouter(address(_factory), address(_weth));
 
-    function testAddLiquidity(uint256 aTokenAMintAmt, uint256 aTokenBMintAmt) external
+    bytes[]   private _data;
+
+    function testAddLiquidity(uint256 aTokenAMintAmt, uint256 aTokenBMintAmt) public
     {
         // arrange
         uint256 lTokenAMintAmt = bound(aTokenAMintAmt, 1, type(uint112).max);
@@ -60,7 +62,7 @@ contract ReservoirRouterTest is BaseTest
         assertEq(_tokenB.balanceOf(address(lPair)), INITIAL_MINT_AMOUNT + lAmountB);
     }
 
-    function testAddLiquidity_CreatePair_ConstantProduct() external
+    function testAddLiquidity_CreatePair_ConstantProduct() public
     {
         // arrange
         uint256 lTokenAMintAmt = 5000e18;
@@ -89,7 +91,7 @@ contract ReservoirRouterTest is BaseTest
         assertEq(_tokenC.balanceOf(address(lPair)), lTokenCMintAmt);
     }
 
-    function testAddLiquidity_CreatePair_ConstantProduct_Native() external
+    function testAddLiquidity_CreatePair_ConstantProduct_Native() public
     {
         // arrange
         uint256 lTokenAMintAmt = 5000e18;
@@ -131,7 +133,7 @@ contract ReservoirRouterTest is BaseTest
         assertEq(_weth.balanceOf(address(lPair)), lEthMintAmt);
     }
 
-    function testRemoveLiquidity(uint256 aAmountToRemove) external
+    function testRemoveLiquidity(uint256 aAmountToRemove) public
     {
         // arrange
         uint256 lStartingBalance = _constantProductPair.balanceOf(_alice);
@@ -161,5 +163,50 @@ contract ReservoirRouterTest is BaseTest
         assertEq(_constantProductPair.balanceOf(_alice), lStartingBalance - lAmountToRemove);
         assertEq(_tokenA.balanceOf(_alice), lAmountA);
         assertEq(_tokenB.balanceOf(_alice), lAmountB);
+    }
+
+    function testRemoveLiquidity_Native() public
+    {
+        // arrange
+        testAddLiquidity_CreatePair_ConstantProduct_Native();
+
+        // act
+        bytes[] memory lData = new bytes[](1);
+
+//        lData[1] = abi.encodeCall(
+//            _router.unwrapWETH,
+//            (
+//                lAmount,
+//                address(this)
+//            )
+//        );
+
+        // assert
+    }
+
+
+    function testCheckDeadline(uint256 aDeadline) public
+    {
+        // arrange
+        uint256 lDeadline = bound(aDeadline, 1, type(uint64).max);
+        uint256 lTimeToJump = bound(aDeadline, 0, lDeadline - 1);
+        _stepTime(lTimeToJump);
+        _data.push(abi.encodeCall(_router.checkDeadline, (lDeadline)));
+
+        // act
+        bytes[] memory lResult = _router.multicall(_data);
+    }
+
+    function testCheckDeadline_PastDeadline(uint256 aDeadline) public
+    {
+        // arrange
+        uint256 lTimeToJump = bound(aDeadline, 1, type(uint64).max);
+        uint256 lDeadline = bound(aDeadline, 1, lTimeToJump);
+        _stepTime(lTimeToJump);
+        _data.push(abi.encodeCall(_router.checkDeadline, (lDeadline)));
+
+        // act & assert
+        vm.expectRevert("PH: TX_TOO_OLD");
+        bytes[] memory lResult = _router.multicall(_data);
     }
 }
