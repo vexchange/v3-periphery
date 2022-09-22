@@ -45,7 +45,12 @@ library ReservoirLibrary {
     }
 
     // fetches and sorts the reserves for a pair
-    function getReserves(IGenericFactory factory, address tokenA, address tokenB, uint256 curveId) internal view returns (uint256 reserveA, uint256 reserveB) {
+    function getReserves(
+        IGenericFactory factory,
+        address tokenA,
+        address tokenB,
+        uint256 curveId
+    ) internal view returns (uint256 reserveA, uint256 reserveB) {
         (address token0,) = sortTokens(tokenA, tokenB);
         (uint reserve0, uint reserve1,) = IReservoirPair(pairFor(factory, tokenA, tokenB, curveId)).getReserves();
         (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);

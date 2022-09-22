@@ -11,8 +11,6 @@ import { PeripheryPayments } from "src/abstract/PeripheryPayments.sol";
 import { PredicateHelper } from "src/abstract/PredicateHelper.sol";
 import { Multicall } from "src/abstract/Multicall.sol";
 
-import "forge-std/console.sol";
-
 contract ReservoirRouter is
     IReservoirRouter,
     PeripheryImmutableState,
@@ -30,9 +28,11 @@ contract ReservoirRouter is
         uint amountBDesired,
         uint amountAMin,
         uint amountBMin
-    ) private returns (uint amountA, uint amountB) {
-        if (factory.getPair(tokenA, tokenB, curveId) == address(0)) {
-            factory.createPair(tokenA, tokenB, curveId);
+    ) private returns (uint amountA, uint amountB, address pair) {
+        pair = factory.getPair(tokenA, tokenB, curveId);
+
+        if (pair == address(0)) {
+            pair = factory.createPair(tokenA, tokenB, curveId);
         }
 
         (uint256 reserveA, uint256 reserveB) = ReservoirLibrary.getReserves(factory, tokenA, tokenB, curveId);
@@ -63,9 +63,8 @@ contract ReservoirRouter is
         uint amountBMin,
         address to
     ) external payable returns (uint256 amountA, uint256 amountB, uint256 liquidity) {
-
-        (amountA, amountB) = _addLiquidity(tokenA, tokenB, curveId, amountADesired, amountBDesired, amountAMin, amountBMin);
-        address pair = ReservoirLibrary.pairFor(factory, tokenA, tokenB, curveId);
+        address pair;
+        (amountA, amountB, pair) = _addLiquidity(tokenA, tokenB, curveId, amountADesired, amountBDesired, amountAMin, amountBMin);
 
         TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
         TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);
