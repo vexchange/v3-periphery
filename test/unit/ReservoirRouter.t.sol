@@ -14,7 +14,7 @@ contract ReservoirRouterTest is BaseTest
     WETH            private _weth   = new WETH();
     ReservoirRouter private _router = new ReservoirRouter(address(_factory), address(_weth));
 
-    bytes[]   private _data;
+    bytes[]         private _data;
 
     function testAddLiquidity(uint256 aTokenAMintAmt, uint256 aTokenBMintAmt) public
     {
@@ -172,15 +172,13 @@ contract ReservoirRouterTest is BaseTest
         testAddLiquidity_CreatePair_ConstantProduct_Native();
 
         // act
-        bytes[] memory lData = new bytes[](1);
-
-//        lData[1] = abi.encodeCall(
+//        _data.push(abi.encodeCall(
 //            _router.unwrapWETH,
 //            (
 //                lAmount,
 //                address(this)
 //            )
-//        );
+//        ));
 
         // assert
     }
@@ -207,7 +205,7 @@ contract ReservoirRouterTest is BaseTest
         _data.push(abi.encodeCall(_router.checkDeadline, (lDeadline)));
 
         // act
-        bytes[] memory lResult = _router.multicall(_data);
+        _router.multicall(_data);
     }
 
     function testCheckDeadline_PastDeadline(uint256 aDeadline) public
@@ -220,6 +218,6 @@ contract ReservoirRouterTest is BaseTest
 
         // act & assert
         vm.expectRevert("PH: TX_TOO_OLD");
-        bytes[] memory lResult = _router.multicall(_data);
+        _router.multicall(_data);
     }
 }

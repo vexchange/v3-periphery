@@ -6,6 +6,8 @@ import { IGenericFactory } from "v3-core/src/interfaces/IGenericFactory.sol";
 import { ConstantProductPair } from "v3-core/src/curve/constant-product/ConstantProductPair.sol";
 import { StablePair } from "v3-core/src/curve/stable/StablePair.sol";
 
+import { StableMath } from "v3-core/src/libraries/StableMath.sol";
+
 library ReservoirLibrary {
 
     // returns sorted token addresses, used to handle return values from pairs sorted in this order
@@ -59,8 +61,22 @@ library ReservoirLibrary {
     // given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
     // this would work for both ConstantProduct and Stable pairs
     function quote(uint amountA, uint reserveA, uint reserveB) internal pure returns (uint amountB) {
-        require(amountA > 0, "UniswapV2Library: INSUFFICIENT_AMOUNT");
-        require(reserveA > 0 && reserveB > 0, "UniswapV2Library: INSUFFICIENT_LIQUIDITY");
+        require(amountA > 0, "ReservoirLibrary: INSUFFICIENT_AMOUNT");
+        require(reserveA > 0 && reserveB > 0, "ReservoirLibrary: INSUFFICIENT_LIQUIDITY");
         amountB = amountA * reserveB / reserveA;
+    }
+
+    function computeStableLiquidity(
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 token0PrecisionMultiplier,
+        uint256 token1PrecisionMultiplier,
+        uint256 N_A
+    ) internal pure returns (uint256) {
+        return StableMath._computeLiquidityFromAdjustedBalances(
+            reserve0 * token0PrecisionMultiplier,
+            reserve1 * token1PrecisionMultiplier,
+            N_A
+        );
     }
 }

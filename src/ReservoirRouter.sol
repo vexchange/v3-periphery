@@ -1,7 +1,12 @@
 pragma solidity 0.8.13;
 
+import { ERC20 } from "solmate/tokens/ERC20.sol";
+import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
+import { Math } from "@openzeppelin/utils/math/Math.sol";
+
 import { IReservoirRouter } from "src/interfaces/IReservoirRouter.sol";
 import { IReservoirPair } from "v3-core/src/interfaces/IReservoirPair.sol";
+import { StablePair } from "v3-core/src/curve/stable/StablePair.sol";
 
 import { ReservoirLibrary } from "src/libraries/ReservoirLibrary.sol";
 import { TransferHelper } from "src/libraries/TransferHelper.sol";
@@ -18,6 +23,8 @@ contract ReservoirRouter is
     PredicateHelper,
     Multicall
 {
+    uint256 constant MINIMUM_LIQUIDITY = 1e3;
+
     constructor (address aFactory, address aWETH) PeripheryImmutableState(aFactory, aWETH) {}
 
     function _addLiquidity(
@@ -99,11 +106,68 @@ contract ReservoirRouter is
     function getAmountIn(uint256 curveId, address tokenIn, address tokenOut, uint256 amountOut) external view returns (uint256 amountIn) {}
     function getAmountsIn(uint256 curveId, address tokenIn, address tokenOut, uint256 amountOut) external view returns(uint256[] memory amountsIn) {}
 
-    function quoteAddLiquidity(address pair, uint256 amount0, uint256 amount1) external view {}
+    // todo: implement the StablePair case
+    // right now, the math to calculate liquidity is not accurate
+    // what about the optimal amounts????
+    function quoteAddLiquidity(
+        address tokenA,
+        address tokenB,
+        uint256 curveId,
+        uint256 amountADesired,
+        uint256 amountBDesired
+    ) external view returns (uint256 amountA, uint256 amountB, uint256 liquidity) {
+        address pair = factory.getPair(tokenA, tokenB, curveId);
+        (uint reserveA, uint reserveB) = (0,0);
+        uint tokenAPrecisionMultiplier = uint256(10) ** (18 - ERC20(tokenA).decimals());
+        uint tokenBPrecisionMultiplier = uint256(10) ** (18 - ERC20(tokenB).decimals());
+        uint _totalSupply = 0;
+
+        if (pair != address(0)) {
+            _totalSupply = IReservoirPair(pair).totalSupply();
+            (reserveA, reserveB) = ReservoirLibrary.getReserves(factory, tokenA, tokenB, curveId);
+        }
+
+        if (reserveA == 0 && reserveB == 0) {
+            (amountA, amountB) = (amountADesired, amountBDesired);
+            if (curveId == 0) {
+                liquidity = FixedPointMathLib.sqrt(amountA * amountB) - MINIMUM_LIQUIDITY;
+            }
+            else if (curveId == 1) {
+                uint256 newLiq = ReservoirLibrary.computeStableLiquidity(
+                    amountA,
+                    amountB,
+                    tokenAPrecisionMultiplier,
+                    tokenBPrecisionMultiplier,
+                    2 * StablePair(pair).getCurrentAPrecise()
+                );
+                liquidity = newLiq - MINIMUM_LIQUIDITY;
+            }
+        }
+        else {
+            if (curveId == 0) {
+                uint amountBOptimal = ReservoirLibrary.quote(amountADesired, reserveA, reserveB);
+                if (amountBOptimal <= amountBDesired) {
+                    (amountA, amountB) = (amountADesired, amountBOptimal);
+                    liquidity = Math.min(amountA * _totalSupply / reserveA, amountB * _totalSupply / reserveB);
+                } else {
+                    uint amountAOptimal = ReservoirLibrary.quote(amountBDesired, reserveB, reserveA);
+                    (amountA, amountB) = (amountAOptimal, amountBDesired);
+                    liquidity = Math.min(amountA * _totalSupply / reserveA, amountB * _totalSupply / reserveB);
+                }
+            }
+            else if (curveId == 1) {
+
+            }
+        }
+    }
 
     // implementation from solidly
-    function quoteRemoveLiquidity(address tokenA, address tokenB, uint256 curveId, uint256 liquidity) external view
-    returns (uint256 amountA, uint256 amountB) {
+    function quoteRemoveLiquidity(
+        address tokenA,
+        address tokenB,
+        uint256 curveId,
+        uint256 liquidity
+    ) external view returns (uint256 amountA, uint256 amountB) {
         address pair = factory.getPair(tokenA, tokenB, curveId);
 
         if (pair == address(0)) {
