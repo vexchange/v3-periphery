@@ -106,9 +106,6 @@ contract ReservoirRouter is
     function getAmountIn(uint256 curveId, address tokenIn, address tokenOut, uint256 amountOut) external view returns (uint256 amountIn) {}
     function getAmountsIn(uint256 curveId, address tokenIn, address tokenOut, uint256 amountOut) external view returns(uint256[] memory amountsIn) {}
 
-    // todo: implement the StablePair case
-    // right now, the math to calculate liquidity is not accurate
-    // what about the optimal amounts????
     function quoteAddLiquidity(
         address tokenA,
         address tokenB,
@@ -144,19 +141,34 @@ contract ReservoirRouter is
             }
         }
         else {
+            uint amountBOptimal = ReservoirLibrary.quote(amountADesired, reserveA, reserveB);
+            if (amountBOptimal <= amountBDesired) {
+                (amountA, amountB) = (amountADesired, amountBOptimal);
+            }
+            else {
+                uint amountAOptimal = ReservoirLibrary.quote(amountBDesired, reserveB, reserveA);
+                (amountA, amountB) = (amountAOptimal, amountBDesired);
+            }
+
             if (curveId == 0) {
-                uint amountBOptimal = ReservoirLibrary.quote(amountADesired, reserveA, reserveB);
-                if (amountBOptimal <= amountBDesired) {
-                    (amountA, amountB) = (amountADesired, amountBOptimal);
-                    liquidity = Math.min(amountA * _totalSupply / reserveA, amountB * _totalSupply / reserveB);
-                } else {
-                    uint amountAOptimal = ReservoirLibrary.quote(amountBDesired, reserveB, reserveA);
-                    (amountA, amountB) = (amountAOptimal, amountBDesired);
-                    liquidity = Math.min(amountA * _totalSupply / reserveA, amountB * _totalSupply / reserveB);
-                }
+                liquidity = Math.min(amountA * _totalSupply / reserveA, amountB * _totalSupply / reserveB);
             }
             else if (curveId == 1) {
-
+                uint256 oldLiq = ReservoirLibrary.computeStableLiquidity(
+                    reserveA,
+                    reserveB,
+                    tokenAPrecisionMultiplier,
+                    tokenBPrecisionMultiplier,
+                    2 * StablePair(pair).getCurrentAPrecise()
+                );
+                uint256 newLiq = ReservoirLibrary.computeStableLiquidity(
+                    reserveA + amountA,
+                    reserveB + amountB,
+                    tokenAPrecisionMultiplier,
+                    tokenBPrecisionMultiplier,
+                    2 * StablePair(pair).getCurrentAPrecise()
+                );
+                liquidity = (newLiq - oldLiq) * _totalSupply / oldLiq;
             }
         }
     }

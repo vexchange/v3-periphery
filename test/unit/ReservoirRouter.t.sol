@@ -4,6 +4,8 @@ import "v3-core/test/__fixtures/BaseTest.sol";
 
 import { WETH } from "solmate/tokens/WETH.sol";
 import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
+import { Math } from "@openzeppelin/utils/math/Math.sol";
+
 import { MathUtils } from "v3-core/src/libraries/MathUtils.sol";
 
 import { ReservoirLibrary, IGenericFactory } from "src/libraries/ReservoirLibrary.sol";
@@ -181,6 +183,38 @@ contract ReservoirRouterTest is BaseTest
 //        ));
 
         // assert
+    }
+
+    function testQuoteAddLiquidity(uint256 aAmountAToAdd, uint256 aAmountBToAdd) public
+    {
+        // arrange
+        uint256 lAmountAToAdd = bound(aAmountAToAdd, 1000, type(uint112).max);
+        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1000, type(uint112).max);
+
+        // act
+        (uint256 lAmountAOptimal, uint256 lAmountBOptimal, uint256 lLiq)
+            = _router.quoteAddLiquidity(address(_tokenA), address(_tokenB), 0, lAmountAToAdd, lAmountBToAdd);
+
+        // assert
+        assertEq(lAmountAOptimal, Math.min(lAmountAToAdd, lAmountBToAdd));
+        assertEq(lAmountBOptimal, lAmountAOptimal);
+
+        assertEq(lLiq, FixedPointMathLib.sqrt(lAmountAOptimal * lAmountBOptimal));
+    }
+
+    function testQuoteAddLiquidity_Stable(uint256 aAmountAToAdd, uint256 aAmountBToAdd) public
+    {
+        // arrange
+        uint256 lAmountAToAdd = bound(aAmountAToAdd, 1000, type(uint112).max);
+        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1000, type(uint112).max);
+
+        // act
+        (uint256 lAmountAOptimal, uint256 lAmountBOptimal, uint256 lLiq) = _router.quoteAddLiquidity(address(_tokenA), address(_tokenB), 1, lAmountAToAdd, lAmountBToAdd);
+
+        // assert
+        assertEq(lAmountAOptimal, Math.min(lAmountAToAdd, lAmountBToAdd));
+        assertEq(lAmountBOptimal, lAmountAOptimal);
+        assertEq(lLiq, lAmountAOptimal + lAmountBOptimal);
     }
 
     function testQuoteRemoveLiquidity(uint256 aLiquidity) public
