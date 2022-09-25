@@ -209,7 +209,8 @@ contract ReservoirRouterTest is BaseTest
         uint256 lAmountBToAdd = bound(aAmountBToAdd, 1000, type(uint112).max);
 
         // act
-        (uint256 lAmountAOptimal, uint256 lAmountBOptimal, uint256 lLiq) = _router.quoteAddLiquidity(address(_tokenA), address(_tokenB), 1, lAmountAToAdd, lAmountBToAdd);
+        (uint256 lAmountAOptimal, uint256 lAmountBOptimal, uint256 lLiq)
+            = _router.quoteAddLiquidity(address(_tokenA), address(_tokenB), 1, lAmountAToAdd, lAmountBToAdd);
 
         // assert
         assertEq(lAmountAOptimal, Math.min(lAmountAToAdd, lAmountBToAdd));

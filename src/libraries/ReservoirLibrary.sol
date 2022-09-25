@@ -21,29 +21,24 @@ library ReservoirLibrary {
     function pairFor(IGenericFactory factory, address tokenA, address tokenB, uint256 curveId) internal pure returns (address pair) {
         (address token0, address token1) = sortTokens(tokenA, tokenB);
 
-        if (curveId == 0) {
-            bytes memory lInitCode = abi.encodePacked(type(ConstantProductPair).creationCode, abi.encode(token0, token1));
+        bytes memory lInitCode;
 
-            pair = address(uint160(uint256(keccak256(abi.encodePacked(
-                    bytes1(0xff),
-                    address(factory),
-                    bytes32(0),
-                    keccak256(lInitCode)
-                )))));
+        if (curveId == 0) {
+            lInitCode = abi.encodePacked(type(ConstantProductPair).creationCode, abi.encode(token0, token1));
         }
         else if (curveId == 1) {
-            bytes memory lInitCode = abi.encodePacked(type(StablePair).creationCode, abi.encode(token0, token1));
-
-            pair = address(uint160(uint256(keccak256(abi.encodePacked(
-                    bytes1(0xff),
-                    address(factory),
-                    bytes32(0),
-                    keccak256(lInitCode)
-                )))));
+            lInitCode = abi.encodePacked(type(StablePair).creationCode, abi.encode(token0, token1));
         }
         else {
             revert("RL: CURVE_DOES_NOT_EXIST");
         }
+
+        pair = address(uint160(uint256(keccak256(abi.encodePacked(
+                bytes1(0xff),
+                address(factory),
+                bytes32(0),
+                keccak256(lInitCode)
+            )))));
     }
 
     // fetches and sorts the reserves for a pair
