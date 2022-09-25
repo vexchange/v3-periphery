@@ -49,12 +49,12 @@ contract ReservoirRouter is
         else {
             uint amountBOptimal = ReservoirLibrary.quote(amountADesired, reserveA, reserveB);
             if (amountBOptimal <= amountBDesired) {
-                require(amountBOptimal >= amountBMin, "ReservoirRouter: INSUFFICIENT_B_AMOUNT");
+                require(amountBOptimal >= amountBMin, "RR: INSUFFICIENT_B_AMOUNT");
                 (amountA, amountB) = (amountADesired, amountBOptimal);
             } else {
                 uint amountAOptimal = ReservoirLibrary.quote(amountBDesired, reserveB, reserveA);
                 assert(amountAOptimal <= amountADesired);
-                require(amountAOptimal >= amountAMin, "ReservoirRouter: INSUFFICIENT_A_AMOUNT");
+                require(amountAOptimal >= amountAMin, "RR: INSUFFICIENT_A_AMOUNT");
                 (amountA, amountB) = (amountAOptimal, amountBDesired);
             }
         }
@@ -93,8 +93,8 @@ contract ReservoirRouter is
         (uint amount0, uint amount1) = IReservoirPair(pair).burn(to);
         (address token0,) = ReservoirLibrary.sortTokens(tokenA, tokenB);
         (amountA, amountB) = tokenA == token0 ? (amount0, amount1) : (amount1, amount0);
-        require(amountA >= amountAMin, "ReservoirRouter: INSUFFICIENT_A_AMOUNT");
-        require(amountB >= amountBMin, "ReservoirRouter: INSUFFICIENT_B_AMOUNT");
+        require(amountA >= amountAMin, "RR: INSUFFICIENT_A_AMOUNT");
+        require(amountB >= amountBMin, "RR: INSUFFICIENT_B_AMOUNT");
     }
 
     function swapExactForVariable(address pair, address tokenIn, uint256 amountIn, uint256 minAmountOut) external returns (uint256 amountOut) {}

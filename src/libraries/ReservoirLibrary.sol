@@ -12,9 +12,9 @@ library ReservoirLibrary {
 
     // returns sorted token addresses, used to handle return values from pairs sorted in this order
     function sortTokens(address tokenA, address tokenB) internal pure returns (address token0, address token1) {
-        require(tokenA != tokenB, "ReservoirLibrary: IDENTICAL_ADDRESSES");
+        require(tokenA != tokenB, "RL: IDENTICAL_ADDRESSES");
         (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        require(token0 != address(0), "ReservoirLibrary: ZERO_ADDRESS");
+        require(token0 != address(0), "RL: ZERO_ADDRESS");
     }
 
     // calculates the CREATE2 address for a pair without making any external calls
@@ -56,8 +56,8 @@ library ReservoirLibrary {
     // given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
     // this would work for both ConstantProduct and Stable pairs
     function quote(uint amountA, uint reserveA, uint reserveB) internal pure returns (uint amountB) {
-        require(amountA > 0, "ReservoirLibrary: INSUFFICIENT_AMOUNT");
-        require(reserveA > 0 && reserveB > 0, "ReservoirLibrary: INSUFFICIENT_LIQUIDITY");
+        require(amountA > 0, "RL: INSUFFICIENT_AMOUNT");
+        require(reserveA > 0 && reserveB > 0, "RL: INSUFFICIENT_LIQUIDITY");
         amountB = amountA * reserveB / reserveA;
     }
 
