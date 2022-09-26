@@ -2,6 +2,7 @@ pragma solidity ^0.8.0;
 
 import { IReservoirPair } from "v3-core/src/interfaces/IReservoirPair.sol";
 import { IGenericFactory } from "v3-core/src/interfaces/IGenericFactory.sol";
+import { ExtraData } from "src/interfaces/IReservoirRouter.sol";
 
 import { ConstantProductPair } from "v3-core/src/curve/constant-product/ConstantProductPair.sol";
 import { StablePair } from "v3-core/src/curve/stable/StablePair.sol";
@@ -9,6 +10,7 @@ import { StablePair } from "v3-core/src/curve/stable/StablePair.sol";
 import { StableMath } from "v3-core/src/libraries/StableMath.sol";
 
 library ReservoirLibrary {
+    uint256 public constant FEE_ACCURACY  = 10_000;
 
     // returns sorted token addresses, used to handle return values from pairs sorted in this order
     function sortTokens(address tokenA, address tokenB) internal pure returns (address token0, address token1) {
@@ -72,6 +74,44 @@ library ReservoirLibrary {
             reserve0 * token0PrecisionMultiplier,
             reserve1 * token1PrecisionMultiplier,
             N_A
+        );
+    }
+
+    function getAmountOutConstantProduct(
+        uint256 amountIn,
+        uint256 reserveIn,
+        uint256 reserveOut,
+        uint256 curveId,
+        uint256 swapFee
+    ) internal pure returns (uint256 amountOut) {
+        require(amountIn > 0, "RL: INSUFFICIENT_INPUT_AMOUNT");
+        require(reserveIn > 0 && reserveOut > 0, "RL: INSUFFICIENT_LIQUIDITY");
+        uint amountInWithFee = amountIn * (FEE_ACCURACY - swapFee);
+        uint numerator = amountInWithFee * reserveOut;
+        uint denominator = reserveIn * FEE_ACCURACY + amountInWithFee;
+        amountOut = numerator / denominator;
+    }
+
+    function getAmountOutStable(
+        uint256 amountIn,
+        uint256 reserveIn,
+        uint256 reserveOut,
+        uint256 curveId,
+        uint256 swapFee,
+        ExtraData calldata data
+    ) internal pure returns (uint256 amountOut) {
+        require(amountIn > 0, "RL: INSUFFICIENT_INPUT_AMOUNT");
+        require(reserveIn > 0 && reserveOut > 0, "RL: INSUFFICIENT_LIQUIDITY");
+
+        StableMath._getAmountOut(
+            amountIn,
+            reserveIn,
+            reserveOut,
+            data.token0PrecisionMultiplier,
+            data.token1PrecisionMultiplier,
+            true,
+            swapFee,
+            2 * data.amplificationCoefficient
         );
     }
 }

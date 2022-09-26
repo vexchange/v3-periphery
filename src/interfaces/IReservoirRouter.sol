@@ -1,5 +1,11 @@
 pragma solidity 0.8.13;
 
+struct ExtraData {
+    uint64 token0PrecisionMultiplier;
+    uint64 token1PrecisionMultiplier;
+    uint64 amplificationCoefficient;
+}
+
 interface IReservoirRouter {
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -43,9 +49,14 @@ interface IReservoirRouter {
                                 QUERY METHODS (VIEW)
     //////////////////////////////////////////////////////////////////////////*/
 
-    function getAmountOut(uint256 curveId, address tokenIn, address tokenOut, uint256 amountIn) external view returns(uint256 amountOut);
+    /**
+
+    @param extraData for StablePair use, to leave blank for ConstantProductPair. See ReservoirLibrary
+
+     */
+    function getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut, uint256 curveId, uint256 swapFee, ExtraData calldata extraData) external pure returns(uint256 amountOut);
     function getAmountsOut(uint256 curveId, address tokenIn, address tokenOut, uint256 amountIn) external view returns(uint256[] memory amountsOut);
-    function getAmountIn(uint256 curveId, address tokenIn, address tokenOut, uint256 amountOut) external view returns(uint256 amountIn);
+    function getAmountIn(uint256 amountOut, uint256 reserveIn, uint256 reserveOut, uint256 curveId, uint256 swapFee, ExtraData calldata extraData) external pure returns(uint256 amountIn);
     function getAmountsIn(uint256 curveId, address tokenIn, address tokenOut, uint256 amountOut) external view returns(uint256[] memory amountsIn);
 
     function quoteAddLiquidity(
@@ -58,7 +69,7 @@ interface IReservoirRouter {
 
     function quoteRemoveLiquidity(
         address tokenA,
-        address tokenB, 
+        address tokenB,
         uint256 curveId,
         uint256 liquidity
     ) external view returns (uint256 amountA, uint256 amountB);

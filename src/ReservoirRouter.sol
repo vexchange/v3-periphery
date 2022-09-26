@@ -4,7 +4,7 @@ import { ERC20 } from "solmate/tokens/ERC20.sol";
 import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
 import { Math } from "@openzeppelin/utils/math/Math.sol";
 
-import { IReservoirRouter } from "src/interfaces/IReservoirRouter.sol";
+import { IReservoirRouter, ExtraData } from "src/interfaces/IReservoirRouter.sol";
 import { IReservoirPair } from "v3-core/src/interfaces/IReservoirPair.sol";
 import { StablePair } from "v3-core/src/curve/stable/StablePair.sol";
 
@@ -102,10 +102,26 @@ contract ReservoirRouter is
     function swapExactForVariable(address pair, address tokenIn, uint256 amountIn, uint256 minAmountOut) external returns (uint256 amountOut) {}
     function swapVariableForExact(address pair, address tokenOut, uint256 amountOut, uint256 maxAmountIn) external returns (uint256 amountIn) {}
 
-    function getAmountOut(uint256 curveId, address tokenIn, address tokenOut, uint256 amountIn) external view returns (uint256 amountOut) {}
+    function getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut, uint256 curveId, uint256 swapFee, ExtraData calldata extraData) external pure returns (uint256 amountOut) {
+        if (curveId == 0) {
+            return ReservoirLibrary.getAmountOutConstantProduct(amountIn, reserveIn, reserveOut, curveId, swapFee);
+        }
+        else if (curveId == 1) {
+            return ReservoirLibrary.getAmountOutStable(amountIn, reserveIn, reserveOut, curveId, swapFee, extraData);
+        }
+    }
+
     function getAmountsOut(uint256 curveId, address tokenIn, address tokenOut, uint256 amountIn) external view returns(uint256[] memory amountsOut) {}
 
-    function getAmountIn(uint256 curveId, address tokenIn, address tokenOut, uint256 amountOut) external view returns (uint256 amountIn) {}
+    function getAmountIn(uint256 amountOut, uint256 reserveIn, uint256 reserveOut, uint256 curveId, uint256 swapFee, ExtraData calldata extraData) external pure returns (uint256 amountIn) {
+        if (curveId == 0) {
+//            return ReservoirLibrary.getAmountInConstantProduct();
+        }
+        else if (curveId == 1) {
+//            return ReservoirLibrary.getAmountInStable();
+        }
+    }
+
     function getAmountsIn(uint256 curveId, address tokenIn, address tokenOut, uint256 amountOut) external view returns(uint256[] memory amountsIn) {}
 
     function quoteAddLiquidity(
