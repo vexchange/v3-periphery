@@ -86,7 +86,7 @@ contract ReservoirRouter is
         uint256 liquidity,
         uint256 amountAMin,
         uint256 amountBMin,
-        address to
+        address to // when withdrawing to the router in UniV3, this address is 0. But we can just put the router's address
     ) external /*payable*/ returns (uint256 amountA, uint256 amountB) {
         address pair = ReservoirLibrary.pairFor(address(factory), tokenA, tokenB, curveId);
         IReservoirPair(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
