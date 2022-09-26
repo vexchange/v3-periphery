@@ -18,7 +18,7 @@ library ReservoirLibrary {
     }
 
     // calculates the CREATE2 address for a pair without making any external calls
-    function pairFor(IGenericFactory factory, address tokenA, address tokenB, uint256 curveId) internal pure returns (address pair) {
+    function pairFor(address factory, address tokenA, address tokenB, uint256 curveId) internal pure returns (address pair) {
         (address token0, address token1) = sortTokens(tokenA, tokenB);
 
         bytes memory lInitCode;
@@ -35,7 +35,7 @@ library ReservoirLibrary {
 
         pair = address(uint160(uint256(keccak256(abi.encodePacked(
                 bytes1(0xff),
-                address(factory),
+                factory,
                 bytes32(0),
                 keccak256(lInitCode)
             )))));
@@ -43,7 +43,7 @@ library ReservoirLibrary {
 
     // fetches and sorts the reserves for a pair
     function getReserves(
-        IGenericFactory factory,
+        address factory,
         address tokenA,
         address tokenB,
         uint256 curveId

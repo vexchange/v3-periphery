@@ -42,7 +42,7 @@ contract ReservoirRouter is
             pair = factory.createPair(tokenA, tokenB, curveId);
         }
 
-        (uint256 reserveA, uint256 reserveB) = ReservoirLibrary.getReserves(factory, tokenA, tokenB, curveId);
+        (uint256 reserveA, uint256 reserveB) = ReservoirLibrary.getReserves(address(factory), tokenA, tokenB, curveId);
         if (reserveA == 0 && reserveB == 0) {
             (amountA, amountB) = (amountADesired, amountBDesired);
         }
@@ -73,8 +73,8 @@ contract ReservoirRouter is
         address pair;
         (amountA, amountB, pair) = _addLiquidity(tokenA, tokenB, curveId, amountADesired, amountBDesired, amountAMin, amountBMin);
 
-        TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
-        TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);
+        _pay(tokenA, msg.sender, pair, amountA);
+        _pay(tokenB, msg.sender, pair, amountB);
 
         liquidity = IReservoirPair(pair).mint(to);
     }
@@ -88,11 +88,13 @@ contract ReservoirRouter is
         uint256 amountBMin,
         address to
     ) external /*payable*/ returns (uint256 amountA, uint256 amountB) {
-        address pair = ReservoirLibrary.pairFor(factory, tokenA, tokenB, curveId);
+        address pair = ReservoirLibrary.pairFor(address(factory), tokenA, tokenB, curveId);
         IReservoirPair(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
         (uint amount0, uint amount1) = IReservoirPair(pair).burn(to);
+
         (address token0,) = ReservoirLibrary.sortTokens(tokenA, tokenB);
         (amountA, amountB) = tokenA == token0 ? (amount0, amount1) : (amount1, amount0);
+
         require(amountA >= amountAMin, "RR: INSUFFICIENT_A_AMOUNT");
         require(amountB >= amountBMin, "RR: INSUFFICIENT_B_AMOUNT");
     }
@@ -121,7 +123,7 @@ contract ReservoirRouter is
 
         if (pair != address(0)) {
             _totalSupply = IReservoirPair(pair).totalSupply();
-            (reserveA, reserveB) = ReservoirLibrary.getReserves(factory, tokenA, tokenB, curveId);
+            (reserveA, reserveB) = ReservoirLibrary.getReserves(address(factory), tokenA, tokenB, curveId);
         }
 
         if (reserveA == 0 && reserveB == 0) {
@@ -186,7 +188,7 @@ contract ReservoirRouter is
             return (0,0);
         }
 
-        (uint256 reserveA, uint256 reserveB) = ReservoirLibrary.getReserves(factory, tokenA, tokenB, curveId);
+        (uint256 reserveA, uint256 reserveB) = ReservoirLibrary.getReserves(address(factory), tokenA, tokenB, curveId);
         uint256 totalSupply = IReservoirPair(pair).totalSupply();
 
         amountA = liquidity * reserveA / totalSupply;

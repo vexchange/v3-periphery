@@ -45,12 +45,6 @@ abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableSta
         if (address(this).balance > 0) TransferHelper.safeTransferETH(msg.sender, address(this).balance);
     }
 
-    function wrapETH(address recipient, uint256 value) external payable {
-        require(address(this).balance >= value, "PP: INSUFFICIENT_VALUE");
-        WETH.deposit{value: value}();
-        WETH.transfer(recipient, value);
-    }
-
     /// @param token The token to pay
     /// @param payer The entity that must pay
     /// @param recipient The entity that will receive payment

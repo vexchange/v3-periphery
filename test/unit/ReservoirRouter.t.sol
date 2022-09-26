@@ -31,8 +31,7 @@ contract ReservoirRouterTest is BaseTest
         _tokenB.approve(address(_router), type(uint256).max);
 
         // act
-        bytes[] memory lData = new bytes[](1);
-        lData[0] = abi.encodeCall(
+        _data.push(abi.encodeCall(
             _router.addLiquidity,
             (
                 address(_tokenA),
@@ -44,14 +43,14 @@ contract ReservoirRouterTest is BaseTest
                 1,
                 _bob
             )
-        );
+        ));
 
-        bytes[] memory lResult = _router.multicall(lData);
+        bytes[] memory lResult = _router.multicall(_data);
 
         // assert
         ReservoirPair lPair = ReservoirPair(
                                 ReservoirLibrary.pairFor(
-                                    IGenericFactory(address(_factory)),
+                                    address(_factory),
                                     address(_tokenA),
                                     address(_tokenB),
                                     0
@@ -103,12 +102,9 @@ contract ReservoirRouterTest is BaseTest
         deal(_bob, 10 ether);
         vm.startPrank(_bob);
         _tokenA.approve(address(_router), type(uint256).max);
-        _weth.approve(address(_router), type(uint256).max);
 
         // act
-        bytes[] memory lData = new bytes[](2);
-        lData[0] = abi.encodeCall(_router.wrapETH, (_bob, 5 ether));
-        lData[1] = abi.encodeCall(
+        _data.push(abi.encodeCall(
             _router.addLiquidity,
             (
                 address(_weth),
@@ -120,13 +116,17 @@ contract ReservoirRouterTest is BaseTest
                 1e18,
                 _bob
             )
-        );
+        ));
+        _data.push(abi.encodeCall(
+            _router.refundETH,
+            ()
+        ));
 
-        bytes[] memory lResult = _router.multicall{value: 5 ether}(lData);
+        bytes[] memory lResult = _router.multicall{value: 5 ether}(_data);
 
         // assert
         ReservoirPair lPair = ReservoirPair(_factory.getPair(address(_weth), address(_tokenA), 0));
-        (uint256 lAmountA, uint256 lAmountB, uint256 lLiquidity) = abi.decode(lResult[1], (uint256, uint256, uint256));
+        (uint256 lAmountA, uint256 lAmountB, uint256 lLiquidity) = abi.decode(lResult[0], (uint256, uint256, uint256));
         assertEq(lLiquidity, FixedPointMathLib.sqrt(lTokenAMintAmt * lEthMintAmt) - lPair.MINIMUM_LIQUIDITY());
         assertEq(lPair.balanceOf(_bob), lLiquidity);
         assertEq(_tokenA.balanceOf(_bob), 0);
@@ -134,6 +134,10 @@ contract ReservoirRouterTest is BaseTest
         assertEq(_bob.balance, 5 ether);
         assertEq(_tokenA.balanceOf(address(lPair)), lTokenAMintAmt);
         assertEq(_weth.balanceOf(address(lPair)), lEthMintAmt);
+    }
+
+    function testAddLiquidity_ConstantProduct_Native_RefundETH() public {
+
     }
 
     function testRemoveLiquidity(uint256 aAmountToRemove) public
@@ -145,8 +149,7 @@ contract ReservoirRouterTest is BaseTest
         _constantProductPair.approve(address(_router), lAmountToRemove);
 
         // act
-        bytes[] memory lData = new bytes[](1);
-        lData[0] = abi.encodeCall(
+        _data.push(abi.encodeCall(
             _router.removeLiquidity,
             (
                 address(_tokenA),
@@ -157,9 +160,9 @@ contract ReservoirRouterTest is BaseTest
                 1,
                 address(_alice)
             )
-        );
+        ));
 
-        bytes[] memory lResult = _router.multicall(lData);
+        bytes[] memory lResult = _router.multicall(_data);
 
         // assert
         (uint256 lAmountA, uint256 lAmountB) = abi.decode(lResult[0], (uint256, uint256));
@@ -172,17 +175,47 @@ contract ReservoirRouterTest is BaseTest
     {
         // arrange
         testAddLiquidity_CreatePair_ConstantProduct_Native();
+        // clear data from previous test
+        delete _data;
+        ReservoirPair lPair = ReservoirPair(ReservoirLibrary.pairFor(address(_factory), address(_tokenA), address(_weth), 0));
+        uint256 lLiq = lPair.balanceOf(_bob);
+        lPair.approve(address(_router), lLiq);
 
         // act
-//        _data.push(abi.encodeCall(
-//            _router.unwrapWETH,
-//            (
-//                lAmount,
-//                address(this)
-//            )
-//        ));
+        _data.push(abi.encodeCall(
+            _router.removeLiquidity,
+            (
+                address(_tokenA),
+                address(_weth),
+                0,
+                lLiq,
+                1,
+                1,
+                address(_router)
+            )
+        ));
+        _data.push(abi.encodeCall(
+            _router.sweepToken,
+            (
+                address(_tokenA),
+                500, // whatever
+                _bob
+            )
+        ));
+        _data.push(abi.encodeCall(
+            _router.unwrapWETH,
+            (
+                5, // wtv
+                _bob
+            )
+        ));
+
+        bytes[] memory lResult = _router.multicall(_data);
 
         // assert
+        assertEq(lPair.balanceOf(_bob), 0);
+        assertEq(_tokenA.balanceOf(_bob), lLiq * 5000e18 / (lLiq + lPair.MINIMUM_LIQUIDITY()));
+        assertEq(_bob.balance,  10 ether);
     }
 
     function testQuoteAddLiquidity(uint256 aAmountAToAdd, uint256 aAmountBToAdd) public
