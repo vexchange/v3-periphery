@@ -50,12 +50,12 @@ library ReservoirLibrary {
     }
 
     // does not support tokens with > 18 decimals
-    function getPrecisionMultiplier(address token) internal view returns (uint256 precisionMultiplier) {
-        precisionMultiplier = 10 ** (18 - ERC20(token).decimals());
+    function getPrecisionMultiplier(address token) internal view returns (uint64 precisionMultiplier) {
+        precisionMultiplier = uint64(10 ** (18 - ERC20(token).decimals()));
     }
 
     // returns the precise amplification coefficient for calculation purposes
-    function getAmplificationCoefficient(address pair) internal view returns (uint256 amplificationCoefficient) {
+    function getAmplificationCoefficient(address pair) internal view returns (uint64 amplificationCoefficient) {
         amplificationCoefficient = StablePair(pair).getCurrentAPrecise();
     }
 
@@ -149,7 +149,7 @@ library ReservoirLibrary {
         uint256 swapFee,
         ExtraData calldata data
     ) internal pure returns (uint256 amountIn) {
-        require(amountIn > 0, "RL: INSUFFICIENT_INPUT_AMOUNT");
+        require(amountOut > 0, "RL: INSUFFICIENT_OUTPUT_AMOUNT");
         require(reserveIn > 0 && reserveOut > 0, "RL: INSUFFICIENT_LIQUIDITY");
 
         amountIn = StableMath._getAmountIn(

@@ -25,7 +25,8 @@ contract ReservoirRouter is
 {
     uint256 constant MINIMUM_LIQUIDITY = 1e3;
 
-    constructor (address aFactory, address aWETH) PeripheryImmutableState(aFactory, aWETH) {}
+    constructor (address aFactory, address aWETH) PeripheryImmutableState(aFactory, aWETH)
+    {}
 
     function _addLiquidity(
         address tokenA,
@@ -99,6 +100,22 @@ contract ReservoirRouter is
         require(amountB >= amountBMin, "RR: INSUFFICIENT_B_AMOUNT");
     }
 
+    // **** SWAP ****
+    // requires the initial amount to have already been sent to the first pair
+//    function _swap(uint[] memory amounts, address[] memory path, address _to) internal {
+//        for (uint i; i < path.length - 1; i++) {
+//            (address input, address output) = (path[i], path[i + 1]);
+//            (address token0,) = ReservoirLibrary.sortTokens(input, output);
+//            uint amountOut = amounts[i + 1];
+//            (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOut) : (amountOut, uint(0));
+//            address to = i < path.length - 2 ? ReservoirLibrary.pairFor(factory, output, path[i + 2]) : _to;
+//            IReservoirPair(ReservoirLibrary.pairFor(factory, input, output)).swap(
+//                amount0Out, amount1Out, to, new bytes(0)
+//            );
+//        }
+//    }
+
+
     function swapExactForVariable(address pair, address tokenIn, uint256 amountIn, uint256 minAmountOut) external returns (uint256 amountOut) {}
     function swapVariableForExact(address pair, address tokenOut, uint256 amountOut, uint256 maxAmountIn) external returns (uint256 amountIn) {}
 
@@ -123,7 +140,14 @@ contract ReservoirRouter is
         return ReservoirLibrary.getAmountsOut(address(factory), amountIn, path, curveIds);
     }
 
-    function getAmountIn(uint256 amountOut, uint256 reserveIn, uint256 reserveOut, uint256 curveId, uint256 swapFee, ExtraData calldata extraData) external pure returns (uint256 amountIn) {
+    function getAmountIn(
+        uint256 amountOut,
+        uint256 reserveIn,
+        uint256 reserveOut,
+        uint256 curveId,
+        uint256 swapFee,
+        ExtraData calldata extraData
+    ) external pure returns (uint256 amountIn) {
         if (curveId == 0) {
             return ReservoirLibrary.getAmountInConstantProduct(amountOut, reserveIn, reserveOut, swapFee);
         }
@@ -132,7 +156,9 @@ contract ReservoirRouter is
         }
     }
 
-    function getAmountsIn(uint256 curveId, address tokenIn, address tokenOut, uint256 amountOut) external view returns(uint256[] memory amountsIn) {}
+    function getAmountsIn(uint256 curveId, address tokenIn, address tokenOut, uint256 amountOut) external view returns(uint256[] memory amountsIn) {
+//        return ReservoirLibrary.getAmountsIn();
+    }
 
     function quoteAddLiquidity(
         address tokenA,

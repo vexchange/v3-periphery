@@ -8,6 +8,8 @@ import { Math } from "@openzeppelin/utils/math/Math.sol";
 
 import { MathUtils } from "v3-core/src/libraries/MathUtils.sol";
 
+import { IReservoirPair } from "v3-core/src/interfaces/IReservoirPair.sol";
+import { ExtraData } from "src/interfaces/IReservoirRouter.sol";
 import { ReservoirLibrary, IGenericFactory } from "src/libraries/ReservoirLibrary.sol";
 import { ReservoirRouter } from "src/ReservoirRouter.sol";
 
@@ -64,7 +66,7 @@ contract ReservoirRouterTest is BaseTest
         assertEq(_tokenB.balanceOf(address(lPair)), INITIAL_MINT_AMOUNT + lAmountB);
     }
 
-    function testAddLiquidity_CreatePair_ConstantProduct() public
+    function testAddLiquidity_CreatePair_CP() public
     {
         // arrange
         uint256 lTokenAMintAmt = 5000e18;
@@ -290,16 +292,121 @@ contract ReservoirRouterTest is BaseTest
         _router.multicall(_data);
     }
 
-    function testGetAmountOut() public
+    function testGetAmountOut_ErrorChecking(uint256 aCurveId, uint256 aAmountIn) public
+    {
+        // arrange - might not be the best solution, but it prevents repeated code
+        aCurveId = bound(aCurveId, 0, 1);
+        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max);
+
+        // act & revert
+        vm.expectRevert("RL: INSUFFICIENT_INPUT_AMOUNT");
+        _router.getAmountOut(0, 10, 10, aCurveId, 30, ExtraData(0,0,0));
+
+        vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
+        _router.getAmountOut(lAmountIn, 0, 0, aCurveId, 0, ExtraData(0,0,0));
+    }
+
+    function testGetAmountOut_CP(uint256 aAmountIn) public
     {
         // arrange
-
+        (uint112 lReserve0, uint112 lReserve1, ) = _constantProductPair.getReserves();
+        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max);
+        _tokenA.mint(address(_constantProductPair), lAmountIn);
+        uint256 lSwapFee = _constantProductPair.swapFee();
 
         // act
-
+        uint256 lAmountOut = _router.getAmountOut(lAmountIn, lReserve0, lReserve1, 0, lSwapFee, ExtraData(0,0,0));
+        uint256 lActualAmountOut = _constantProductPair.swap(int256(lAmountIn), true, address(this), bytes(""));
 
         // assert
+        assertLt(lAmountOut, lAmountIn);
+        assertEq(lAmountOut, lActualAmountOut);
+    }
 
+    function testGetAmountOut_SP(uint256 aAmountIn) public
+    {
+        // arrange
+        (uint112 lReserve0, uint112 lReserve1, ) = _stablePair.getReserves();
+        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max);
+        _tokenA.mint(address(_stablePair), lAmountIn);
+        uint256 lSwapFee = _stablePair.swapFee();
+        uint64 lToken0PrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(_stablePair.token0());
+        uint64 lToken1PrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(_stablePair.token1());
+        uint64 lA = ReservoirLibrary.getAmplificationCoefficient(address(_stablePair));
 
+        // act
+        uint256 lAmountOut
+            = _router.getAmountOut(
+                lAmountIn,
+                lReserve0,
+                lReserve1,
+                1,
+                lSwapFee,
+                ExtraData(lToken0PrecisionMultiplier,lToken1PrecisionMultiplier, lA)
+        );
+        uint256 lActualAmountOut = _stablePair.swap(int256(lAmountIn), true, address(this), bytes(""));
+
+        // assert
+        assertLt(lAmountOut, lAmountIn);
+        assertEq(lAmountOut, lActualAmountOut);
+    }
+
+    function testGetAmountIn_ErrorChecking(uint256 aCurveId, uint256 aAmountOut) public
+    {
+        // arrange
+        aCurveId = bound(aCurveId, 0, 1);
+        uint256 aAmountOut = bound(aAmountOut, 1, type(uint112).max);
+
+        // act & revert
+        vm.expectRevert("RL: INSUFFICIENT_OUTPUT_AMOUNT");
+        _router.getAmountIn(0, 10, 10, aCurveId, 30, ExtraData(0,0,0));
+
+        vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
+        _router.getAmountIn(aAmountOut, 0, 0, aCurveId, 0, ExtraData(0,0,0));
+    }
+
+    function testGetAmountIn_CP(uint256 aAmountOut) public
+    {
+        // arrange
+        (uint112 lReserve0, uint112 lReserve1, ) = _constantProductPair.getReserves();
+        uint256 lAmountOut = bound(aAmountOut, 1000, lReserve1 / 2);
+        uint256 lSwapFee = _constantProductPair.swapFee();
+
+        // act
+        uint256 lAmountIn = _router.getAmountIn(lAmountOut, lReserve0, lReserve1, 0, lSwapFee, ExtraData(0,0,0));
+        _tokenA.mint(address(_constantProductPair), lAmountIn);
+        uint256 lActualAmountOut = _constantProductPair.swap(-int256(lAmountOut), false, address(this), bytes(""));
+
+        // assert
+        assertLt(lAmountOut, lAmountIn);
+        assertEq(lAmountOut, lActualAmountOut);
+    }
+
+    function testGetAmountIn_SP(uint256 aAmountOut) public
+    {
+        // arrange
+        (uint112 lReserve0, uint112 lReserve1, ) = _stablePair.getReserves();
+        uint256 lAmountOut = bound(aAmountOut, 1, lReserve1 / 2);
+        uint256 lSwapFee = _stablePair.swapFee();
+        uint64 lToken0PrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(_stablePair.token0());
+        uint64 lToken1PrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(_stablePair.token1());
+        uint64 lA = ReservoirLibrary.getAmplificationCoefficient(address(_stablePair));
+
+        // act
+        uint256 lAmountIn
+            = _router.getAmountIn(
+                lAmountOut,
+                lReserve0,
+                lReserve1,
+                1,
+                lSwapFee,
+                ExtraData(lToken0PrecisionMultiplier,lToken1PrecisionMultiplier, lA)
+        );
+        _tokenA.mint(address(_stablePair), lAmountIn);
+        uint256 lActualAmountOut = _stablePair.swap(-int256(lAmountOut), false, address(this), bytes(""));
+
+        // assert
+        assertLt(lAmountOut, lAmountIn);
+        assertEq(lAmountOut, lActualAmountOut);
     }
 }
