@@ -102,7 +102,14 @@ contract ReservoirRouter is
     function swapExactForVariable(address pair, address tokenIn, uint256 amountIn, uint256 minAmountOut) external returns (uint256 amountOut) {}
     function swapVariableForExact(address pair, address tokenOut, uint256 amountOut, uint256 maxAmountIn) external returns (uint256 amountIn) {}
 
-    function getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut, uint256 curveId, uint256 swapFee, ExtraData calldata extraData) external pure returns (uint256 amountOut) {
+    function getAmountOut(
+        uint256 amountIn,
+        uint256 reserveIn,
+        uint256 reserveOut,
+        uint256 curveId,
+        uint256 swapFee,
+        ExtraData calldata extraData
+    ) external pure returns (uint256 amountOut) {
         if (curveId == 0) {
             return ReservoirLibrary.getAmountOutConstantProduct(amountIn, reserveIn, reserveOut, swapFee);
         }
@@ -111,7 +118,10 @@ contract ReservoirRouter is
         }
     }
 
-    function getAmountsOut(uint256 curveId, address tokenIn, address tokenOut, uint256 amountIn) external view returns(uint256[] memory amountsOut) {}
+    // perf: to use calldata or memory for path and curveIds?
+    function getAmountsOut(uint256 amountIn, address[] calldata path, uint256[] calldata curveIds) external view returns(uint256[] memory amountsOut) {
+        return ReservoirLibrary.getAmountsOut(address(factory), amountIn, path, curveIds);
+    }
 
     function getAmountIn(uint256 amountOut, uint256 reserveIn, uint256 reserveOut, uint256 curveId, uint256 swapFee, ExtraData calldata extraData) external pure returns (uint256 amountIn) {
         if (curveId == 0) {

@@ -1,4 +1,6 @@
-pragma solidity ^0.8.0;
+pragma solidity 0.8.13;
+
+import { ERC20 } from "solmate/tokens/ERC20.sol";
 
 import { IReservoirPair } from "v3-core/src/interfaces/IReservoirPair.sol";
 import { IGenericFactory } from "v3-core/src/interfaces/IGenericFactory.sol";
@@ -45,6 +47,16 @@ library ReservoirLibrary {
 
     function getSwapFee(address factory, address tokenA, address tokenB, uint256 curveId) internal view returns (uint swapFee) {
         swapFee = IReservoirPair(pairFor(factory, tokenA, tokenB, curveId)).swapFee();
+    }
+
+    // does not support tokens with > 18 decimals
+    function getPrecisionMultiplier(address token) internal view returns (uint256 precisionMultiplier) {
+        precisionMultiplier = 10 ** (18 - ERC20(token).decimals());
+    }
+
+    // returns the precise amplification coefficient for calculation purposes
+    function getAmplificationCoefficient(address pair) internal view returns (uint256 amplificationCoefficient) {
+        amplificationCoefficient = StablePair(pair).getCurrentAPrecise();
     }
 
     // fetches and sorts the reserves for a pair
@@ -113,7 +125,7 @@ library ReservoirLibrary {
         uint256 reserveIn,
         uint256 reserveOut,
         uint256 swapFee,
-        ExtraData calldata data
+        ExtraData memory data
     ) internal pure returns (uint256 amountOut) {
         require(amountIn > 0, "RL: INSUFFICIENT_INPUT_AMOUNT");
         require(reserveIn > 0 && reserveOut > 0, "RL: INSUFFICIENT_LIQUIDITY");
@@ -150,5 +162,33 @@ library ReservoirLibrary {
             swapFee,
             2 * data.amplificationCoefficient
         );
+    }
+
+    // performs chained getAmountOut calculations on any number of pairs
+    function getAmountsOut(
+        address factory,
+        uint256 amountIn,
+        address[] calldata path,
+        uint256[] calldata curveIds
+    ) internal view returns (uint256[] memory amounts) {
+        require(path.length >= 2, "RL: INVALID_PATH");
+        require(curveIds.length == path.length - 1, "RL: CURVE_IDS_INVALID_LENGTH");
+        amounts = new uint[](path.length);
+        amounts[0] = amountIn;
+        for (uint i; i < path.length - 1; ++i) {
+            (uint reserveIn, uint reserveOut) = getReserves(factory, path[i], path[i + 1], curveIds[i]);
+            uint swapFee = getSwapFee(factory, path[i], path[i + 1], curveIds[i]);
+            if (curveIds[i] == 0) {
+                amounts[i + 1] = getAmountOutConstantProduct(amounts[i], reserveIn, reserveOut, swapFee);
+            }
+            else if (curveIds[i] == 1) {
+                ExtraData memory data = ExtraData(
+                    uint64(getPrecisionMultiplier(path[i])),
+                    uint64(getPrecisionMultiplier(path[i + 1])),
+                    uint64(getAmplificationCoefficient(pairFor(factory, path[i], path[i + 1], 1)))
+                );
+                amounts[i + 1] = getAmountOutStable(amounts[i], reserveIn, reserveOut, swapFee, data);
+            }
+        }
     }
 }
