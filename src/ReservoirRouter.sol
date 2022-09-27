@@ -135,11 +135,6 @@ contract ReservoirRouter is
         }
     }
 
-    // perf: to use calldata or memory for path and curveIds?
-    function getAmountsOut(uint256 amountIn, address[] calldata path, uint256[] calldata curveIds) external view returns(uint256[] memory amountsOut) {
-        return ReservoirLibrary.getAmountsOut(address(factory), amountIn, path, curveIds);
-    }
-
     function getAmountIn(
         uint256 amountOut,
         uint256 reserveIn,
@@ -156,8 +151,13 @@ contract ReservoirRouter is
         }
     }
 
-    function getAmountsIn(uint256 curveId, address tokenIn, address tokenOut, uint256 amountOut) external view returns(uint256[] memory amountsIn) {
-//        return ReservoirLibrary.getAmountsIn();
+    // perf: to use calldata or memory for path and curveIds?
+    function getAmountsOut(uint256 amountIn, address[] calldata path, uint256[] calldata curveIds) external view returns(uint256[] memory amountsOut) {
+        return ReservoirLibrary.getAmountsOut(address(factory), amountIn, path, curveIds);
+    }
+
+    function getAmountsIn(uint256 amountOut, address[] calldata path, uint256[] calldata curveIds) external view returns(uint256[] memory amountsIn) {
+        return ReservoirLibrary.getAmountsIn(address(factory), amountOut, path, curveIds);
     }
 
     function quoteAddLiquidity(

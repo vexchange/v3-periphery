@@ -147,7 +147,7 @@ library ReservoirLibrary {
         uint256 reserveIn,
         uint256 reserveOut,
         uint256 swapFee,
-        ExtraData calldata data
+        ExtraData memory data
     ) internal pure returns (uint256 amountIn) {
         require(amountOut > 0, "RL: INSUFFICIENT_OUTPUT_AMOUNT");
         require(reserveIn > 0 && reserveOut > 0, "RL: INSUFFICIENT_LIQUIDITY");
@@ -175,7 +175,7 @@ library ReservoirLibrary {
         require(curveIds.length == path.length - 1, "RL: CURVE_IDS_INVALID_LENGTH");
         amounts = new uint[](path.length);
         amounts[0] = amountIn;
-        for (uint i; i < path.length - 1; ++i) {
+        for (uint i; i < path.length - 1; ) {
             (uint reserveIn, uint reserveOut) = getReserves(factory, path[i], path[i + 1], curveIds[i]);
             uint swapFee = getSwapFee(factory, path[i], path[i + 1], curveIds[i]);
             if (curveIds[i] == 0) {
@@ -189,6 +189,37 @@ library ReservoirLibrary {
                 );
                 amounts[i + 1] = getAmountOutStable(amounts[i], reserveIn, reserveOut, swapFee, data);
             }
+            unchecked { i += 1; }
+        }
+    }
+
+    // performs chained getAmountIn calculations on any number of pairs
+    function getAmountsIn(
+        address factory,
+        uint256 amountOut,
+        address[] calldata path,
+        uint256[] calldata curveIds
+    ) internal view returns (uint[] memory amounts) {
+        require(path.length >= 2, "RL: INVALID_PATH");
+        require(curveIds.length == path.length - 1, "RL: CURVE_IDS_INVALID_LENGTH");
+        amounts = new uint[](path.length);
+        amounts[amounts.length - 1] = amountOut;
+        for (uint i = path.length - 1; i > 0; ) {
+            (uint reserveIn, uint reserveOut) = getReserves(factory, path[i - 1], path[i], curveIds[i]);
+            uint swapFee = getSwapFee(factory, path[i - 1], path[i], curveIds[i]);
+            if (curveIds[i] == 0) {
+                amounts[i - 1] = getAmountInConstantProduct(amounts[i], reserveIn, reserveOut, swapFee);
+            }
+            else if (curveIds[i] == 1) {
+                ExtraData memory data = ExtraData(
+                    uint64(getPrecisionMultiplier(path[i - 1])),
+                    uint64(getPrecisionMultiplier(path[i])),
+                    uint64(getAmplificationCoefficient(pairFor(factory, path[i], path[i - 1], 1)))
+                );
+                amounts[i - 1] = getAmountInStable(amounts[i], reserveIn, reserveOut, swapFee, data);
+            }
+
+            unchecked{ i -= 1; }
         }
     }
 }

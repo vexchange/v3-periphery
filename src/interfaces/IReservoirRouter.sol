@@ -49,7 +49,6 @@ interface IReservoirRouter {
                                 QUERY METHODS (VIEW)
     //////////////////////////////////////////////////////////////////////////*/
 
-
     /// @param extraData for StablePair use, to leave blank for ConstantProductPair. See ReservoirLibrary
     function getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut, uint256 curveId, uint256 swapFee, ExtraData calldata extraData) external pure returns(uint256 amountOut);
     /// @param extraData for StablePair use, to leave blank for ConstantProductPair. See ReservoirLibrary
@@ -57,8 +56,8 @@ interface IReservoirRouter {
 
     /// @param path array of ERC20 tokens to swap into
     function getAmountsOut(uint256 amountIn, address[] calldata path, uint256[] calldata curveIds) external view returns(uint256[] memory amountsOut);
-
-    function getAmountsIn(uint256 curveId, address tokenIn, address tokenOut, uint256 amountOut) external view returns(uint256[] memory amountsIn);
+    /// @param path array of ERC20 tokens to swap into
+    function getAmountsIn(uint256 amountOut, address[] calldata path, uint256[] calldata curveIds) external view returns(uint256[] memory amountsIn);
 
     function quoteAddLiquidity(
         address tokenA,
