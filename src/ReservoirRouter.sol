@@ -104,10 +104,10 @@ contract ReservoirRouter is
 
     function getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut, uint256 curveId, uint256 swapFee, ExtraData calldata extraData) external pure returns (uint256 amountOut) {
         if (curveId == 0) {
-            return ReservoirLibrary.getAmountOutConstantProduct(amountIn, reserveIn, reserveOut, curveId, swapFee);
+            return ReservoirLibrary.getAmountOutConstantProduct(amountIn, reserveIn, reserveOut, swapFee);
         }
         else if (curveId == 1) {
-            return ReservoirLibrary.getAmountOutStable(amountIn, reserveIn, reserveOut, curveId, swapFee, extraData);
+            return ReservoirLibrary.getAmountOutStable(amountIn, reserveIn, reserveOut, swapFee, extraData);
         }
     }
 
@@ -115,10 +115,10 @@ contract ReservoirRouter is
 
     function getAmountIn(uint256 amountOut, uint256 reserveIn, uint256 reserveOut, uint256 curveId, uint256 swapFee, ExtraData calldata extraData) external pure returns (uint256 amountIn) {
         if (curveId == 0) {
-//            return ReservoirLibrary.getAmountInConstantProduct();
+            return ReservoirLibrary.getAmountInConstantProduct(amountOut, reserveIn, reserveOut, swapFee);
         }
         else if (curveId == 1) {
-//            return ReservoirLibrary.getAmountInStable();
+            return ReservoirLibrary.getAmountInStable(amountOut, reserveIn, reserveOut, swapFee, extraData);
         }
     }
 
@@ -191,7 +191,6 @@ contract ReservoirRouter is
         }
     }
 
-    // implementation from solidly
     function quoteRemoveLiquidity(
         address tokenA,
         address tokenB,

@@ -136,7 +136,8 @@ contract ReservoirRouterTest is BaseTest
         assertEq(_weth.balanceOf(address(lPair)), lEthMintAmt);
     }
 
-    function testAddLiquidity_ConstantProduct_Native_RefundETH() public {
+    function testAddLiquidity_ConstantProduct_Native_RefundETH() public
+    {
 
     }
 
@@ -287,5 +288,18 @@ contract ReservoirRouterTest is BaseTest
         // act & assert
         vm.expectRevert("PH: TX_TOO_OLD");
         _router.multicall(_data);
+    }
+
+    function testGetAmountOut() public
+    {
+        // arrange
+
+
+        // act
+
+
+        // assert
+
+
     }
 }

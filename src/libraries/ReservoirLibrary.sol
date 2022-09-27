@@ -43,6 +43,10 @@ library ReservoirLibrary {
             )))));
     }
 
+    function getSwapFee(address factory, address tokenA, address tokenB, uint256 curveId) internal view returns (uint swapFee) {
+        swapFee = IReservoirPair(pairFor(factory, tokenA, tokenB, curveId)).swapFee();
+    }
+
     // fetches and sorts the reserves for a pair
     function getReserves(
         address factory,
@@ -81,7 +85,6 @@ library ReservoirLibrary {
         uint256 amountIn,
         uint256 reserveIn,
         uint256 reserveOut,
-        uint256 curveId,
         uint256 swapFee
     ) internal pure returns (uint256 amountOut) {
         require(amountIn > 0, "RL: INSUFFICIENT_INPUT_AMOUNT");
@@ -92,24 +95,58 @@ library ReservoirLibrary {
         amountOut = numerator / denominator;
     }
 
+    function getAmountInConstantProduct(
+        uint256 amountOut,
+        uint256 reserveIn,
+        uint256 reserveOut,
+        uint256 swapFee
+    ) internal pure returns (uint256 amountIn) {
+        require(amountOut > 0, "RL: INSUFFICIENT_OUTPUT_AMOUNT");
+        require(reserveIn > 0 && reserveOut > 0, "RL: INSUFFICIENT_LIQUIDITY");
+        uint numerator = reserveIn * amountOut * FEE_ACCURACY;
+        uint denominator = (reserveOut - amountOut) * (FEE_ACCURACY - swapFee);
+        amountIn = (numerator / denominator) + 1;
+    }
+
     function getAmountOutStable(
         uint256 amountIn,
         uint256 reserveIn,
         uint256 reserveOut,
-        uint256 curveId,
         uint256 swapFee,
         ExtraData calldata data
     ) internal pure returns (uint256 amountOut) {
         require(amountIn > 0, "RL: INSUFFICIENT_INPUT_AMOUNT");
         require(reserveIn > 0 && reserveOut > 0, "RL: INSUFFICIENT_LIQUIDITY");
 
-        StableMath._getAmountOut(
+        amountOut = StableMath._getAmountOut(
             amountIn,
             reserveIn,
             reserveOut,
             data.token0PrecisionMultiplier,
             data.token1PrecisionMultiplier,
             true,
+            swapFee,
+            2 * data.amplificationCoefficient
+        );
+    }
+
+    function getAmountInStable(
+        uint256 amountOut,
+        uint256 reserveIn,
+        uint256 reserveOut,
+        uint256 swapFee,
+        ExtraData calldata data
+    ) internal pure returns (uint256 amountIn) {
+        require(amountIn > 0, "RL: INSUFFICIENT_INPUT_AMOUNT");
+        require(reserveIn > 0 && reserveOut > 0, "RL: INSUFFICIENT_LIQUIDITY");
+
+        amountIn = StableMath._getAmountIn(
+            amountOut,
+            reserveIn,
+            reserveOut,
+            data.token0PrecisionMultiplier,
+            data.token1PrecisionMultiplier,
+            false,
             swapFee,
             2 * data.amplificationCoefficient
         );
