@@ -205,12 +205,12 @@ library ReservoirLibrary {
         amounts = new uint[](path.length);
         amounts[amounts.length - 1] = amountOut;
         for (uint i = path.length - 1; i > 0; ) {
-            (uint reserveIn, uint reserveOut) = getReserves(factory, path[i - 1], path[i], curveIds[i]);
-            uint swapFee = getSwapFee(factory, path[i - 1], path[i], curveIds[i]);
-            if (curveIds[i] == 0) {
+            (uint reserveIn, uint reserveOut) = getReserves(factory, path[i - 1], path[i], curveIds[i - 1]);
+            uint swapFee = getSwapFee(factory, path[i - 1], path[i], curveIds[i - 1]);
+            if (curveIds[i - 1] == 0) {
                 amounts[i - 1] = getAmountInConstantProduct(amounts[i], reserveIn, reserveOut, swapFee);
             }
-            else if (curveIds[i] == 1) {
+            else if (curveIds[i - 1] == 1) {
                 ExtraData memory data = ExtraData(
                     uint64(getPrecisionMultiplier(path[i - 1])),
                     uint64(getPrecisionMultiplier(path[i])),
@@ -218,7 +218,6 @@ library ReservoirLibrary {
                 );
                 amounts[i - 1] = getAmountInStable(amounts[i], reserveIn, reserveOut, swapFee, data);
             }
-
             unchecked{ i -= 1; }
         }
     }

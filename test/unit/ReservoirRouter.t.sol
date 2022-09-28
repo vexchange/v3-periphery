@@ -409,4 +409,92 @@ contract ReservoirRouterTest is BaseTest
         assertLt(lAmountOut, lAmountIn);
         assertEq(lAmountOut, lActualAmountOut);
     }
+
+    function testGetAmountsOut_CP(uint256 aAmtBToMint, uint256 aAmtCToMint, uint256 aAmtIn) public
+    {
+        // arrange
+        ConstantProductPair lOtherPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenC), 0));
+        uint256 lAmtBToMint = bound(aAmtBToMint, 2e3, type(uint112).max / 2);
+        uint256 lAmtCToMint = bound(aAmtCToMint, 2e3, type(uint112).max / 2);
+        uint256 lAmtIn = bound(aAmtIn, 2e3, type(uint112).max / 2);
+        _tokenB.mint(address(lOtherPair), lAmtBToMint);
+        _tokenC.mint(address(lOtherPair), lAmtCToMint);
+        lOtherPair.mint(address(this));
+
+        // act
+        address[] memory lPath = new address[](3);
+        lPath[0] = address(_tokenA);
+        lPath[1] = address(_tokenB);
+        lPath[2] = address(_tokenC);
+        uint256[] memory lCurveIds = new uint256[](2);
+        lCurveIds[0] = 0;
+        lCurveIds[1] = 0;
+
+        uint256[] memory lAmounts = _router.getAmountsOut(lAmtIn, lPath, lCurveIds);
+
+        // assert
+
+    }
+
+    function testGetAmountsOut_SP() public
+    {
+
+    }
+
+    function testGetAmountsOut_MixCurves(uint256 aAmtBToMint, uint256 aAmtCToMint, uint256 aAmtIn) public
+    {
+        // arrange
+        ConstantProductPair lOtherPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenC), 0));
+        uint256 lAmtBToMint = bound(aAmtBToMint, 2e3, type(uint112).max / 2);
+        uint256 lAmtCToMint = bound(aAmtCToMint, 2e3, type(uint112).max / 2);
+        uint256 lAmtIn = bound(aAmtIn, 2e3, type(uint112).max / 2);
+        _tokenB.mint(address(lOtherPair), lAmtBToMint);
+        _tokenC.mint(address(lOtherPair), lAmtCToMint);
+        lOtherPair.mint(address(this));
+
+        // act
+        address[] memory lPath = new address[](3);
+        lPath[0] = address(_tokenA);
+        lPath[1] = address(_tokenB);
+        lPath[2] = address(_tokenC);
+        uint256[] memory lCurveIds = new uint256[](2);
+        lCurveIds[0] = 1;
+        lCurveIds[1] = 0;
+
+        uint256[] memory lAmounts = _router.getAmountsOut(lAmtIn, lPath, lCurveIds);
+
+        // assert
+
+    }
+
+    function testGetAmountsIn_CP() public
+    {
+
+    }
+
+    // cannot use fuzz for mint amounts for new pair because the intermediate amountOuts might exceed the reserve of the next pair
+    function testGetAmountsIn_SP(uint256 aAmtOut) public
+    {
+        // arrange
+        StablePair lOtherPair = StablePair(_createPair(address(_tokenB), address(_tokenC), 1));
+        uint256 lAmtOut = bound(aAmtOut, 1e3, INITIAL_MINT_AMOUNT);
+        _tokenB.mint(address(lOtherPair), INITIAL_MINT_AMOUNT);
+        _tokenC.mint(address(lOtherPair), INITIAL_MINT_AMOUNT);
+        lOtherPair.mint(address(this));
+
+        // act
+        address[] memory lPath = new address[](3);
+        lPath[0] = address(_tokenA);
+        lPath[1] = address(_tokenB);
+        lPath[2] = address(_tokenC);
+        uint256[] memory lCurveIds = new uint256[](2);
+        lCurveIds[0] = 1;
+        lCurveIds[1] = 1;
+
+        uint256[] memory lAmounts = _router.getAmountsIn(lAmtOut, lPath, lCurveIds);
+
+        // assert
+        assertEq(lAmounts[2], lAmtOut);
+        assertGt(lAmounts[0], lAmtOut);
+    }
 }
