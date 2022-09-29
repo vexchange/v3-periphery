@@ -20,6 +20,9 @@ contract ReservoirRouterTest is BaseTest
 
     bytes[]         private _data;
 
+    // required to receive ETH refunds from the router
+    receive() external payable {}
+
     function testAddLiquidity(uint256 aTokenAMintAmt, uint256 aTokenBMintAmt) public
     {
         // assume
@@ -97,7 +100,7 @@ contract ReservoirRouterTest is BaseTest
         assertEq(_tokenC.balanceOf(address(lPair)), lTokenCMintAmt);
     }
 
-    function testAddLiquidity_CreatePair_ConstantProduct_Native() public
+    function testAddLiquidity_CreatePair_CP_Native() public
     {
         // arrange
         uint256 lTokenAMintAmt = 5000e18;
@@ -181,7 +184,7 @@ contract ReservoirRouterTest is BaseTest
     function testRemoveLiquidity_Native() public
     {
         // arrange
-        testAddLiquidity_CreatePair_ConstantProduct_Native();
+        testAddLiquidity_CreatePair_CP_Native();
         // clear data from previous test
         delete _data;
         ReservoirPair lPair = ReservoirPair(ReservoirLibrary.pairFor(address(_factory), address(_tokenA), address(_weth), 0));
@@ -495,11 +498,12 @@ contract ReservoirRouterTest is BaseTest
 
     // cannot use fuzz for mint amounts for new pair because the intermediate amountOuts might exceed the reserve of the next pair
     function testGetAmountsIn_SP(uint256 aAmtOut) public
+        returns (uint256 lAmtOut, uint256[] memory lAmounts, address[] memory lPath, uint256[] memory lCurveIds)
     {
         // assume
         // limiting the max to INITIAL_MINT_AMOUNT / 2 for now as
         // having a large number will cause intermediate amounts to exceed reserves
-        uint256 lAmtOut = bound(aAmtOut, 1e3, INITIAL_MINT_AMOUNT / 2);
+        lAmtOut = bound(aAmtOut, 1e3, INITIAL_MINT_AMOUNT / 2);
 
         // arrange
         StablePair lOtherPair = StablePair(_createPair(address(_tokenB), address(_tokenC), 1));
@@ -508,15 +512,15 @@ contract ReservoirRouterTest is BaseTest
         lOtherPair.mint(address(this));
 
         // act
-        address[] memory lPath = new address[](3);
+        lPath = new address[](3);
         lPath[0] = address(_tokenA);
         lPath[1] = address(_tokenB);
         lPath[2] = address(_tokenC);
-        uint256[] memory lCurveIds = new uint256[](2);
+        lCurveIds = new uint256[](2);
         lCurveIds[0] = 1;
         lCurveIds[1] = 1;
 
-        uint256[] memory lAmounts = _router.getAmountsIn(lAmtOut, lPath, lCurveIds);
+        lAmounts = _router.getAmountsIn(lAmtOut, lPath, lCurveIds);
 
         // assert
         assertEq(lAmounts[2], lAmtOut);
@@ -551,9 +555,9 @@ contract ReservoirRouterTest is BaseTest
     function testSwapExactForVariable_NativeIn() public
     {
         // arrange
-        uint256 lAmtIn = 1e18;
-        testAddLiquidity_CreatePair_ConstantProduct_Native();
+        testAddLiquidity_CreatePair_CP_Native();
         delete _data;
+        uint256 lAmtIn = 1e18;
 
         // ETH -> tokenA -> tokenB
         address[] memory lPath = new address[](3);
@@ -587,9 +591,9 @@ contract ReservoirRouterTest is BaseTest
     function testSwapExactForVariable_NativeOut() public
     {
         // arrange
-        uint256 lAmtIn = 1e18;
-        testAddLiquidity_CreatePair_ConstantProduct_Native();
+        testAddLiquidity_CreatePair_CP_Native();
         delete _data;
+        uint256 lAmtIn = 1e18;
 
         _tokenB.mint(address(_bob), lAmtIn);
         _tokenB.approve(address(_router), lAmtIn);
@@ -615,7 +619,7 @@ contract ReservoirRouterTest is BaseTest
             (lAmountOutMin, _cal)
         ));
 
-        bytes[] memory lResult = _router.multicall{value: lAmtIn}(_data);
+        bytes[] memory lResult = _router.multicall(_data);
 
         // assert
         uint256[] memory lAmountsReturned = abi.decode(lResult[0], (uint256[]));
@@ -623,23 +627,133 @@ contract ReservoirRouterTest is BaseTest
         assertEq(lAmountsReturned, lAmounts);
     }
 
-    function testSwapExactForVariable_WithDeadline() public
+    function testSwapVariableForExact(uint256 aAmtIn) public
     {
+        // arrange
+        (uint256 lAmtOut, uint256[] memory lAmounts, address[] memory lPath, uint256[] memory lCurveIds)
+            = testGetAmountsIn_SP(aAmtIn);
+        uint256 lAmountInMax = lAmounts[0] * 101 / 100; // 1% slippage
 
-    }
+        _tokenA.mint(address(this), lAmounts[0]);
+        _tokenA.approve(address(_router), lAmounts[0]);
 
-    function testSwapVariableForExact() public
-    {
+        // act
+        _router.swapVariableForExact(lAmtOut, lAmountInMax, lPath, lCurveIds, address(this));
 
+        // assert
+        assertEq(lAmounts[lAmounts.length - 1], lAmtOut);
+        assertEq(_tokenA.balanceOf(address(this)), 0);
+        assertEq(_tokenC.balanceOf(address(this)), lAmtOut);
     }
 
     function testSwapVariableForExact_NativeIn() public
     {
+        // arrange
+        testAddLiquidity_CreatePair_CP_Native();
+        delete _data;
+        uint256 lAmtOut = 1e18;
 
+        // ETH -> tokenA -> tokenB
+        address[] memory lPath = new address[](3);
+        lPath[0] = address(_weth);
+        lPath[1] = address(_tokenA);
+        lPath[2] = address(_tokenB);
+        uint256[] memory lCurveIds = new uint256[](2);
+        lCurveIds[0] = 0;
+        lCurveIds[1] = 0;
+
+        uint256[] memory lAmounts = _router.getAmountsIn(lAmtOut, lPath, lCurveIds);
+        uint256 lAmountInMax = lAmounts[0] * 101 / 100; // 1% slippage
+
+        _data.push(abi.encodeCall(
+            _router.swapVariableForExact,
+            (lAmtOut, lAmountInMax, lPath, lCurveIds, address(this))
+        ));
+        _data.push(abi.encodeCall(
+            _router.refundETH,
+            ()
+        ));
+        bytes[] memory lResult = _router.multicall{value: lAmounts[0] }(_data);
+
+        // assert
+        uint256[] memory lAmountsReturned = abi.decode(lResult[0], (uint256[]));
+        assertEq(_tokenB.balanceOf(address(this)), lAmtOut);
+        assertEq(lAmountsReturned, lAmounts);
+    }
+
+    function testSwapVariableForExact_NativeIn_RefundETH() public
+    {
+        // arrange
+        testAddLiquidity_CreatePair_CP_Native();
+        delete _data;
+        vm.stopPrank();
+        uint256 lAmtOut = 1e18;
+        uint256 lEtherToMint = 100 ether;
+        deal(address(this), lEtherToMint);
+
+        // ETH -> tokenA -> tokenB
+        address[] memory lPath = new address[](3);
+        lPath[0] = address(_weth);
+        lPath[1] = address(_tokenA);
+        lPath[2] = address(_tokenB);
+        uint256[] memory lCurveIds = new uint256[](2);
+        lCurveIds[0] = 0;
+        lCurveIds[1] = 0;
+
+        uint256[] memory lAmounts = _router.getAmountsIn(lAmtOut, lPath, lCurveIds);
+        uint256 lAmountInMax = lAmounts[0] * 101 / 100; // 1% slippage
+
+        _data.push(abi.encodeCall(
+            _router.swapVariableForExact,
+            (lAmtOut, lAmountInMax, lPath, lCurveIds, address(this))
+        ));
+        _data.push(abi.encodeCall(
+            _router.refundETH,
+            ()
+        ));
+
+        // send way too much ETH to the router
+        bytes[] memory lResult = _router.multicall{ value: address(this).balance }(_data);
+
+        // assert
+        assertEq(address(this).balance, lEtherToMint - lAmounts[0]);
+        assertEq(address(_router).balance, 0);
     }
 
     function testSwapVariableForExact_NativeOut() public
     {
+        testAddLiquidity_CreatePair_CP_Native();
+        delete _data;
+        vm.stopPrank();
+        deal(address(this), 0);
+        uint256 lAmtOut = 1e6;
 
+        // tokenB -> tokenA -> ETH
+        address[] memory lPath = new address[](3);
+        lPath[0] = address(_tokenB);
+        lPath[1] = address(_tokenA);
+        lPath[2] = address(_weth);
+        uint256[] memory lCurveIds = new uint256[](2);
+        lCurveIds[0] = 0;
+        lCurveIds[1] = 0;
+        uint256[] memory lAmounts = _router.getAmountsIn(lAmtOut, lPath, lCurveIds);
+        uint256 lAmountInMax = lAmounts[0] * 101 / 100; // 1% slippage
+        _tokenB.mint(address(this), lAmounts[0]);
+        _tokenB.approve(address(_router), lAmounts[0]);
+
+        // act
+        _data.push(abi.encodeCall(
+            _router.swapVariableForExact,
+            (lAmtOut, lAmountInMax, lPath, lCurveIds, address(_router))
+        ));
+        _data.push(abi.encodeCall(
+            _router.unwrapWETH,
+            (lAmounts[lAmounts.length - 1], address(this))
+        ));
+
+        bytes[] memory lResult = _router.multicall(_data);
+
+        // assert
+        assertEq(address(this).balance, lAmtOut);
     }
 }

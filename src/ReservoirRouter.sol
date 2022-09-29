@@ -146,7 +146,7 @@ contract ReservoirRouter is
         address[] calldata path,
         uint256[] calldata curveIds,
         address to
-    ) external returns (uint256[] memory amounts) {
+    ) external payable returns (uint256[] memory amounts) {
         amounts = ReservoirLibrary.getAmountsIn(address(factory), amountOut, path, curveIds);
         require(amounts[0] <= amountInMax, "RL: EXCESSIVE_INPUT_AMOUNT");
 
