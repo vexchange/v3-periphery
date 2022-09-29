@@ -109,8 +109,16 @@ contract ReservoirRouter is
             (address token0,) = ReservoirLibrary.sortTokens(input, output);
             address to = i < path.length - 2 ? ReservoirLibrary.pairFor(address(factory), output, path[i + 2], curveIds[i + 1]) : _to;
 
+            int256 amount;
+            if (inOrOut) {
+                amount = input == token0 ? int256(amounts[i]) : -int256(amounts[i]);
+            }
+            else {
+                amount = output == token0 ? int256(amounts[i + 1]) : -int256(amounts[i + 1]);
+            }
+
             IReservoirPair(ReservoirLibrary.pairFor(address(factory), input, output, curveIds[i])).swap(
-                input == token0 ? int256(amounts[i]) : -int256(amounts[i]), inOrOut, to, new bytes(0)
+                amount, inOrOut, to, new bytes(0)
             );
 
             unchecked { i += 1; }
