@@ -22,9 +22,11 @@ contract ReservoirRouterTest is BaseTest
 
     function testAddLiquidity(uint256 aTokenAMintAmt, uint256 aTokenBMintAmt) public
     {
-        // arrange
+        // assume
         uint256 lTokenAMintAmt = bound(aTokenAMintAmt, 1, type(uint112).max);
         uint256 lTokenBMintAmt = bound(aTokenBMintAmt, 1, type(uint112).max);
+
+        // arrange
         _tokenA.mint(_bob, lTokenAMintAmt);
         _tokenB.mint(_bob, lTokenBMintAmt);
 
@@ -145,9 +147,11 @@ contract ReservoirRouterTest is BaseTest
 
     function testRemoveLiquidity(uint256 aAmountToRemove) public
     {
-        // arrange
+        // assume
         uint256 lStartingBalance = _constantProductPair.balanceOf(_alice);
         uint256 lAmountToRemove = bound(aAmountToRemove, 1, lStartingBalance);
+
+        // arrange
         vm.startPrank(_alice);
         _constantProductPair.approve(address(_router), lAmountToRemove);
 
@@ -223,7 +227,7 @@ contract ReservoirRouterTest is BaseTest
 
     function testQuoteAddLiquidity(uint256 aAmountAToAdd, uint256 aAmountBToAdd) public
     {
-        // arrange
+        // assume
         uint256 lAmountAToAdd = bound(aAmountAToAdd, 1000, type(uint112).max);
         uint256 lAmountBToAdd = bound(aAmountBToAdd, 1000, type(uint112).max);
 
@@ -240,7 +244,7 @@ contract ReservoirRouterTest is BaseTest
 
     function testQuoteAddLiquidity_Stable(uint256 aAmountAToAdd, uint256 aAmountBToAdd) public
     {
-        // arrange
+        // assume
         uint256 lAmountAToAdd = bound(aAmountAToAdd, 1000, type(uint112).max);
         uint256 lAmountBToAdd = bound(aAmountBToAdd, 1000, type(uint112).max);
 
@@ -256,7 +260,7 @@ contract ReservoirRouterTest is BaseTest
 
     function testQuoteRemoveLiquidity(uint256 aLiquidity) public
     {
-        // arrange
+        // assume
         uint256 lLiquidity = bound(aLiquidity, 1, _constantProductPair.balanceOf(_alice));
 
         // act
@@ -269,9 +273,11 @@ contract ReservoirRouterTest is BaseTest
 
     function testCheckDeadline(uint256 aDeadline) public
     {
-        // arrange
+        // assume
         uint256 lDeadline = bound(aDeadline, 1, type(uint64).max);
         uint256 lTimeToJump = bound(aDeadline, 0, lDeadline - 1);
+
+        // arrange
         _stepTime(lTimeToJump);
         _data.push(abi.encodeCall(_router.checkDeadline, (lDeadline)));
 
@@ -281,9 +287,11 @@ contract ReservoirRouterTest is BaseTest
 
     function testCheckDeadline_PastDeadline(uint256 aDeadline) public
     {
-        // arrange
+        // assume
         uint256 lTimeToJump = bound(aDeadline, 1, type(uint64).max);
         uint256 lDeadline = bound(aDeadline, 1, lTimeToJump);
+
+        // arrange
         _stepTime(lTimeToJump);
         _data.push(abi.encodeCall(_router.checkDeadline, (lDeadline)));
 
@@ -294,7 +302,7 @@ contract ReservoirRouterTest is BaseTest
 
     function testGetAmountOut_ErrorChecking(uint256 aCurveId, uint256 aAmountIn) public
     {
-        // arrange - might not be the best solution, but it prevents repeated code
+        // assume - might not be the best solution, but it prevents repeated code
         aCurveId = bound(aCurveId, 0, 1);
         uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max);
 
@@ -308,9 +316,11 @@ contract ReservoirRouterTest is BaseTest
 
     function testGetAmountOut_CP(uint256 aAmountIn) public
     {
+        // assume
+        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max);
+
         // arrange
         (uint112 lReserve0, uint112 lReserve1, ) = _constantProductPair.getReserves();
-        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max);
         _tokenA.mint(address(_constantProductPair), lAmountIn);
         uint256 lSwapFee = _constantProductPair.swapFee();
 
@@ -325,9 +335,11 @@ contract ReservoirRouterTest is BaseTest
 
     function testGetAmountOut_SP(uint256 aAmountIn) public
     {
+        // assume
+        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max);
+
         // arrange
         (uint112 lReserve0, uint112 lReserve1, ) = _stablePair.getReserves();
-        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max);
         _tokenA.mint(address(_stablePair), lAmountIn);
         uint256 lSwapFee = _stablePair.swapFee();
         uint64 lToken0PrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(_stablePair.token0());
@@ -353,7 +365,7 @@ contract ReservoirRouterTest is BaseTest
 
     function testGetAmountIn_ErrorChecking(uint256 aCurveId, uint256 aAmountOut) public
     {
-        // arrange
+        // assume
         aCurveId = bound(aCurveId, 0, 1);
         uint256 aAmountOut = bound(aAmountOut, 1, type(uint112).max);
 
@@ -367,9 +379,11 @@ contract ReservoirRouterTest is BaseTest
 
     function testGetAmountIn_CP(uint256 aAmountOut) public
     {
-        // arrange
+        // assume
         (uint112 lReserve0, uint112 lReserve1, ) = _constantProductPair.getReserves();
         uint256 lAmountOut = bound(aAmountOut, 1000, lReserve1 / 2);
+
+        // arrange
         uint256 lSwapFee = _constantProductPair.swapFee();
 
         // act
@@ -384,9 +398,11 @@ contract ReservoirRouterTest is BaseTest
 
     function testGetAmountIn_SP(uint256 aAmountOut) public
     {
-        // arrange
+        // assume
         (uint112 lReserve0, uint112 lReserve1, ) = _stablePair.getReserves();
         uint256 lAmountOut = bound(aAmountOut, 1, lReserve1 / 2);
+
+        // arrange
         uint256 lSwapFee = _stablePair.swapFee();
         uint64 lToken0PrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(_stablePair.token0());
         uint64 lToken1PrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(_stablePair.token1());
@@ -412,11 +428,13 @@ contract ReservoirRouterTest is BaseTest
 
     function testGetAmountsOut_CP(uint256 aAmtBToMint, uint256 aAmtCToMint, uint256 aAmtIn) public
     {
-        // arrange
-        ConstantProductPair lOtherPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenC), 0));
+        // assume
         uint256 lAmtBToMint = bound(aAmtBToMint, 2e3, type(uint112).max / 2);
         uint256 lAmtCToMint = bound(aAmtCToMint, 2e3, type(uint112).max / 2);
         uint256 lAmtIn = bound(aAmtIn, 2e3, type(uint112).max / 2);
+
+        // arrange
+        ConstantProductPair lOtherPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenC), 0));
         _tokenB.mint(address(lOtherPair), lAmtBToMint);
         _tokenC.mint(address(lOtherPair), lAmtCToMint);
         lOtherPair.mint(address(this));
@@ -443,11 +461,13 @@ contract ReservoirRouterTest is BaseTest
 
     function testGetAmountsOut_MixCurves(uint256 aAmtBToMint, uint256 aAmtCToMint, uint256 aAmtIn) public
     {
-        // arrange
-        ConstantProductPair lOtherPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenC), 0));
+        // assume
         uint256 lAmtBToMint = bound(aAmtBToMint, 2e3, type(uint112).max / 2);
         uint256 lAmtCToMint = bound(aAmtCToMint, 2e3, type(uint112).max / 2);
         uint256 lAmtIn = bound(aAmtIn, 2e3, type(uint112).max / 2);
+
+        // arrange
+        ConstantProductPair lOtherPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenC), 0));
         _tokenB.mint(address(lOtherPair), lAmtBToMint);
         _tokenC.mint(address(lOtherPair), lAmtCToMint);
         lOtherPair.mint(address(this));
@@ -475,9 +495,11 @@ contract ReservoirRouterTest is BaseTest
     // cannot use fuzz for mint amounts for new pair because the intermediate amountOuts might exceed the reserve of the next pair
     function testGetAmountsIn_SP(uint256 aAmtOut) public
     {
+        // assume
+        uint256 lAmtOut = bound(aAmtOut, 1e3, INITIAL_MINT_AMOUNT);
+
         // arrange
         StablePair lOtherPair = StablePair(_createPair(address(_tokenB), address(_tokenC), 1));
-        uint256 lAmtOut = bound(aAmtOut, 1e3, INITIAL_MINT_AMOUNT);
         _tokenB.mint(address(lOtherPair), INITIAL_MINT_AMOUNT);
         _tokenC.mint(address(lOtherPair), INITIAL_MINT_AMOUNT);
         lOtherPair.mint(address(this));
