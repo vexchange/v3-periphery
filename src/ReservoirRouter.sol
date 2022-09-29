@@ -117,15 +117,34 @@ contract ReservoirRouter is
         }
     }
 
-    function swapExactForVariable(uint256 amountIn, uint256 amountOutMin, address[] calldata path, uint256[] calldata curveIds, address to) external returns (uint256[] memory amounts) {
+    function swapExactForVariable(
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address[] calldata path,
+        uint256[] calldata curveIds,
+        address to
+    ) external returns (uint256[] memory amounts) {
         amounts = ReservoirLibrary.getAmountsOut(address(factory), amountIn, path, curveIds);
+        // but the actual swap results might be diff from this. Should we move the require into _swap to check for the minOut?
         require(amounts[amounts.length - 1] >= amountOutMin, "RL: INSUFFICIENT_OUTPUT_AMOUNT");
 
         _pay(path[0], msg.sender, ReservoirLibrary.pairFor(address(factory), path[0], path[1], curveIds[0]), amounts[0]);
         _swap(amounts, true, path, curveIds, to);
     }
 
-    function swapVariableForExact(address pair, address tokenOut, uint256 amountOut, uint256 maxAmountIn) external returns (uint256 amountIn) {}
+    function swapVariableForExact(
+        uint256 amountOut,
+        uint256 amountInMax,
+        address[] calldata path,
+        uint256[] calldata curveIds,
+        address to
+    ) external returns (uint256[] memory amounts) {
+        amounts = ReservoirLibrary.getAmountsIn(address(factory), amountOut, path, curveIds);
+        require(amounts[0] <= amountInMax, "RL: EXCESSIVE_INPUT_AMOUNT");
+
+        _pay(path[0], msg.sender, ReservoirLibrary.pairFor(address(factory), path[0], path[1], curveIds[0]), amounts[0]);
+        _swap(amounts, false, path, curveIds, to);
+    }
 
     function getAmountOut(
         uint256 amountIn,
