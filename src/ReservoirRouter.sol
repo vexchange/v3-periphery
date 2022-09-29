@@ -123,7 +123,7 @@ contract ReservoirRouter is
         address[] calldata path,
         uint256[] calldata curveIds,
         address to
-    ) external returns (uint256[] memory amounts) {
+    ) external payable returns (uint256[] memory amounts) {
         amounts = ReservoirLibrary.getAmountsOut(address(factory), amountIn, path, curveIds);
         // but the actual swap results might be diff from this. Should we move the require into _swap to check for the minOut?
         require(amounts[amounts.length - 1] >= amountOutMin, "RL: INSUFFICIENT_OUTPUT_AMOUNT");
