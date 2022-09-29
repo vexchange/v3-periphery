@@ -497,7 +497,9 @@ contract ReservoirRouterTest is BaseTest
     function testGetAmountsIn_SP(uint256 aAmtOut) public
     {
         // assume
-        uint256 lAmtOut = bound(aAmtOut, 1e3, INITIAL_MINT_AMOUNT);
+        // limiting the max to INITIAL_MINT_AMOUNT / 2 for now as
+        // having a large number will cause intermediate amounts to exceed reserves
+        uint256 lAmtOut = bound(aAmtOut, 1e3, INITIAL_MINT_AMOUNT / 2);
 
         // arrange
         StablePair lOtherPair = StablePair(_createPair(address(_tokenB), address(_tokenC), 1));
