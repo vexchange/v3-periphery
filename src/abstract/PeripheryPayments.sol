@@ -59,9 +59,6 @@ abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableSta
             // pay with WETH
             IWETH(WETH).deposit{value: value}(); // wrap only what is needed to pay
             IWETH(WETH).transfer(recipient, value);
-        } else if (payer == address(this)) {
-            // pay with tokens already in the contract (for the exact input multihop case)
-            TransferHelper.safeTransfer(token, recipient, value);
         } else {
             // pull payment
             TransferHelper.safeTransferFrom(token, payer, recipient, value);
