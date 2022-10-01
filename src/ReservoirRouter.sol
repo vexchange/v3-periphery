@@ -29,96 +29,96 @@ contract ReservoirRouter is
     {}
 
     function _addLiquidity(
-        address tokenA,
-        address tokenB,
-        uint curveId,
-        uint amountADesired,
-        uint amountBDesired,
-        uint amountAMin,
-        uint amountBMin
-    ) private returns (uint amountA, uint amountB, address pair) {
-        pair = factory.getPair(tokenA, tokenB, curveId);
+        address aTokenA,
+        address aTokenB,
+        uint aCurveId,
+        uint aAmountADesired,
+        uint aAmountBDesired,
+        uint aAmountAMin,
+        uint aAmountBMin
+    ) private returns (uint rAmountA, uint rAmountB, address rPair) {
+        rPair = factory.getPair(aTokenA, aTokenB, aCurveId);
 
-        if (pair == address(0)) {
-            pair = factory.createPair(tokenA, tokenB, curveId);
+        if (rPair == address(0)) {
+            rPair = factory.createPair(aTokenA, aTokenB, aCurveId);
         }
 
-        (uint256 reserveA, uint256 reserveB) = ReservoirLibrary.getReserves(address(factory), tokenA, tokenB, curveId);
-        if (reserveA == 0 && reserveB == 0) {
-            (amountA, amountB) = (amountADesired, amountBDesired);
+        (uint256 lReserveA, uint256 lReserveB) = ReservoirLibrary.getReserves(address(factory), aTokenA, aTokenB, aCurveId);
+        if (lReserveA == 0 && lReserveB == 0) {
+            (rAmountA, rAmountB) = (aAmountADesired, aAmountBDesired);
         }
         else {
-            uint amountBOptimal = ReservoirLibrary.quote(amountADesired, reserveA, reserveB);
-            if (amountBOptimal <= amountBDesired) {
-                require(amountBOptimal >= amountBMin, "RR: INSUFFICIENT_B_AMOUNT");
-                (amountA, amountB) = (amountADesired, amountBOptimal);
+            uint lAmountBOptimal = ReservoirLibrary.quote(aAmountADesired, lReserveA, lReserveB);
+            if (lAmountBOptimal <= aAmountBDesired) {
+                require(lAmountBOptimal >= aAmountBMin, "RR: INSUFFICIENT_B_AMOUNT");
+                (rAmountA, rAmountB) = (aAmountADesired, lAmountBOptimal);
             } else {
-                uint amountAOptimal = ReservoirLibrary.quote(amountBDesired, reserveB, reserveA);
-                assert(amountAOptimal <= amountADesired);
-                require(amountAOptimal >= amountAMin, "RR: INSUFFICIENT_A_AMOUNT");
-                (amountA, amountB) = (amountAOptimal, amountBDesired);
+                uint lAmountAOptimal = ReservoirLibrary.quote(aAmountBDesired, lReserveB, lReserveA);
+                assert(lAmountAOptimal <= aAmountADesired);
+                require(lAmountAOptimal >= aAmountAMin, "RR: INSUFFICIENT_A_AMOUNT");
+                (rAmountA, rAmountB) = (lAmountAOptimal, aAmountBDesired);
             }
         }
     }
 
     function addLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 curveId,
-        uint amountADesired,
-        uint amountBDesired,
-        uint amountAMin,
-        uint amountBMin,
-        address to
-    ) external payable returns (uint256 amountA, uint256 amountB, uint256 liquidity) {
-        address pair;
-        (amountA, amountB, pair) = _addLiquidity(tokenA, tokenB, curveId, amountADesired, amountBDesired, amountAMin, amountBMin);
+        address aTokenA,
+        address aTokenB,
+        uint256 aCurveId,
+        uint aAmountADesired,
+        uint aAmountBDesired,
+        uint aAmountAMin,
+        uint aAmountBMin,
+        address aTo
+    ) external payable returns (uint256 rAmountA, uint256 rAmountB, uint256 rLiq) {
+        address lPair;
+        (rAmountA, rAmountB, lPair) = _addLiquidity(aTokenA, aTokenB, aCurveId, aAmountADesired, aAmountBDesired, aAmountAMin, aAmountBMin);
 
-        _pay(tokenA, msg.sender, pair, amountA);
-        _pay(tokenB, msg.sender, pair, amountB);
+        _pay(aTokenA, msg.sender, lPair, rAmountA);
+        _pay(aTokenB, msg.sender, lPair, rAmountB);
 
-        liquidity = IReservoirPair(pair).mint(to);
+        rLiq = IReservoirPair(lPair).mint(aTo);
     }
 
     function removeLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 curveId,
-        uint256 liquidity,
-        uint256 amountAMin,
-        uint256 amountBMin,
-        address to // when withdrawing to the router in UniV3, this address is 0. But we can just put the router's address
-    ) external /*payable*/ returns (uint256 amountA, uint256 amountB) {
-        address pair = ReservoirLibrary.pairFor(address(factory), tokenA, tokenB, curveId);
-        IReservoirPair(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
-        (uint amount0, uint amount1) = IReservoirPair(pair).burn(to);
+        address aTokenA,
+        address aTokenB,
+        uint256 aCurveId,
+        uint256 aLiq,
+        uint256 aAmountAMin,
+        uint256 aAmountBMin,
+        address aTo // when withdrawing to the router in UniV3, this address is 0. But we can just put the router's address
+    ) external /*payable*/ returns (uint256 rAmountA, uint256 rAmountB) {
+        address lPair = ReservoirLibrary.pairFor(address(factory), aTokenA, aTokenB, aCurveId);
+        IReservoirPair(lPair).transferFrom(msg.sender, lPair, aLiq); // send liquidity to lPair
+        (uint lAmount0, uint lAmount1) = IReservoirPair(lPair).burn(aTo);
 
-        (address token0,) = ReservoirLibrary.sortTokens(tokenA, tokenB);
-        (amountA, amountB) = tokenA == token0 ? (amount0, amount1) : (amount1, amount0);
+        (address lToken0,) = ReservoirLibrary.sortTokens(aTokenA, aTokenB);
+        (rAmountA, rAmountB) = aTokenA == lToken0 ? (lAmount0, lAmount1) : (lAmount1, lAmount0);
 
-        require(amountA >= amountAMin, "RR: INSUFFICIENT_A_AMOUNT");
-        require(amountB >= amountBMin, "RR: INSUFFICIENT_B_AMOUNT");
+        require(rAmountA >= aAmountAMin, "RR: INSUFFICIENT_A_AMOUNT");
+        require(rAmountB >= aAmountBMin, "RR: INSUFFICIENT_B_AMOUNT");
     }
 
     // **** SWAP ****
     // requires the initial amount to have already been sent to the first pair
-    /// @param inOrOut true for exact in, false for exact out
-    function _swap(uint[] memory amounts, bool inOrOut, address[] memory path, uint256[] memory curveIds, address _to) internal {
-        for (uint i; i < path.length - 1; ) {
-            (address input, address output) = (path[i], path[i + 1]);
-            (address token0,) = ReservoirLibrary.sortTokens(input, output);
-            address to = i < path.length - 2 ? ReservoirLibrary.pairFor(address(factory), output, path[i + 2], curveIds[i + 1]) : _to;
+    /// @param aInOrOut true for exact in, false for exact out
+    function _swap(uint[] memory aAmounts, bool aInOrOut, address[] memory aPath, uint256[] memory aCurveIds, address aTo) internal {
+        for (uint i; i < aPath.length - 1; ) {
+            (address lInput, address lOutput) = (aPath[i], aPath[i + 1]);
+            (address lToken0,) = ReservoirLibrary.sortTokens(lInput, lOutput);
+            address lTo = i < aPath.length - 2 ? ReservoirLibrary.pairFor(address(factory), lOutput, aPath[i + 2], aCurveIds[i + 1]) : aTo;
 
-            int256 amount;
-            if (inOrOut) {
-                amount = input == token0 ? int256(amounts[i]) : -int256(amounts[i]);
+            int256 lAmount;
+            if (aInOrOut) {
+                lAmount = lInput == lToken0 ? int256(aAmounts[i]) : -int256(aAmounts[i]);
             }
             else {
-                amount = output == token0 ? int256(amounts[i + 1]) : -int256(amounts[i + 1]);
+                lAmount = lOutput == lToken0 ? int256(aAmounts[i + 1]) : -int256(aAmounts[i + 1]);
             }
 
-            IReservoirPair(ReservoirLibrary.pairFor(address(factory), input, output, curveIds[i])).swap(
-                amount, inOrOut, to, new bytes(0)
+            IReservoirPair(ReservoirLibrary.pairFor(address(factory), lInput, lOutput, aCurveIds[i])).swap(
+                lAmount, aInOrOut, lTo, new bytes(0)
             );
 
             unchecked { i += 1; }
@@ -126,165 +126,165 @@ contract ReservoirRouter is
     }
 
     function swapExactForVariable(
-        uint256 amountIn,
-        uint256 amountOutMin,
-        address[] calldata path,
-        uint256[] calldata curveIds,
-        address to
-    ) external payable returns (uint256[] memory amounts) {
-        amounts = ReservoirLibrary.getAmountsOut(address(factory), amountIn, path, curveIds);
+        uint256 aAmountIn,
+        uint256 aAmountOutMin,
+        address[] calldata aPath,
+        uint256[] calldata aCurveIds,
+        address aTo
+    ) external payable returns (uint256[] memory rAmounts) {
+        rAmounts = ReservoirLibrary.getAmountsOut(address(factory), aAmountIn, aPath, aCurveIds);
         // but the actual swap results might be diff from this. Should we move the require into _swap to check for the minOut?
-        require(amounts[amounts.length - 1] >= amountOutMin, "RL: INSUFFICIENT_OUTPUT_AMOUNT");
+        require(rAmounts[rAmounts.length - 1] >= aAmountOutMin, "RL: INSUFFICIENT_OUTPUT_AMOUNT");
 
-        _pay(path[0], msg.sender, ReservoirLibrary.pairFor(address(factory), path[0], path[1], curveIds[0]), amounts[0]);
-        _swap(amounts, true, path, curveIds, to);
+        _pay(aPath[0], msg.sender, ReservoirLibrary.pairFor(address(factory), aPath[0], aPath[1], aCurveIds[0]), rAmounts[0]);
+        _swap(rAmounts, true, aPath, aCurveIds, aTo);
     }
 
     function swapVariableForExact(
-        uint256 amountOut,
-        uint256 amountInMax,
-        address[] calldata path,
-        uint256[] calldata curveIds,
-        address to
-    ) external payable returns (uint256[] memory amounts) {
-        amounts = ReservoirLibrary.getAmountsIn(address(factory), amountOut, path, curveIds);
-        require(amounts[0] <= amountInMax, "RL: EXCESSIVE_INPUT_AMOUNT");
+        uint256 aAmountOut,
+        uint256 aAmountInMax,
+        address[] calldata aPath,
+        uint256[] calldata aCurveIds,
+        address aTo
+    ) external payable returns (uint256[] memory rAmounts) {
+        rAmounts = ReservoirLibrary.getAmountsIn(address(factory), aAmountOut, aPath, aCurveIds);
+        require(rAmounts[0] <= aAmountInMax, "RL: EXCESSIVE_INPUT_AMOUNT");
 
-        _pay(path[0], msg.sender, ReservoirLibrary.pairFor(address(factory), path[0], path[1], curveIds[0]), amounts[0]);
-        _swap(amounts, false, path, curveIds, to);
+        _pay(aPath[0], msg.sender, ReservoirLibrary.pairFor(address(factory), aPath[0], aPath[1], aCurveIds[0]), rAmounts[0]);
+        _swap(rAmounts, false, aPath, aCurveIds, aTo);
     }
 
     function getAmountOut(
-        uint256 amountIn,
-        uint256 reserveIn,
-        uint256 reserveOut,
-        uint256 curveId,
-        uint256 swapFee,
-        ExtraData calldata extraData
-    ) external pure returns (uint256 amountOut) {
-        if (curveId == 0) {
-            return ReservoirLibrary.getAmountOutConstantProduct(amountIn, reserveIn, reserveOut, swapFee);
+        uint256 aAmountIn,
+        uint256 aReserveIn,
+        uint256 aReserveOut,
+        uint256 aCurveId,
+        uint256 aSwapFee,
+        ExtraData calldata aExtraData
+    ) external pure returns (uint256 rAmountOut) {
+        if (aCurveId == 0) {
+            rAmountOut = ReservoirLibrary.getAmountOutConstantProduct(aAmountIn, aReserveIn, aReserveOut, aSwapFee);
         }
-        else if (curveId == 1) {
-            return ReservoirLibrary.getAmountOutStable(amountIn, reserveIn, reserveOut, swapFee, extraData);
+        else if (aCurveId == 1) {
+            rAmountOut = ReservoirLibrary.getAmountOutStable(aAmountIn, aReserveIn, aReserveOut, aSwapFee, aExtraData);
         }
     }
 
     function getAmountIn(
-        uint256 amountOut,
-        uint256 reserveIn,
-        uint256 reserveOut,
-        uint256 curveId,
-        uint256 swapFee,
-        ExtraData calldata extraData
-    ) external pure returns (uint256 amountIn) {
-        if (curveId == 0) {
-            return ReservoirLibrary.getAmountInConstantProduct(amountOut, reserveIn, reserveOut, swapFee);
+        uint256 aAmountOut,
+        uint256 aReserveIn,
+        uint256 aReserveOut,
+        uint256 aCurveId,
+        uint256 aSwapFee,
+        ExtraData calldata aExtraData
+    ) external pure returns (uint256 rAmountIn) {
+        if (aCurveId == 0) {
+            rAmountIn = ReservoirLibrary.getAmountInConstantProduct(aAmountOut, aReserveIn, aReserveOut, aSwapFee);
         }
-        else if (curveId == 1) {
-            return ReservoirLibrary.getAmountInStable(amountOut, reserveIn, reserveOut, swapFee, extraData);
+        else if (aCurveId == 1) {
+            rAmountIn = ReservoirLibrary.getAmountInStable(aAmountOut, aReserveIn, aReserveOut, aSwapFee, aExtraData);
         }
     }
 
     function getAmountsOut(
-        uint256 amountIn,
-        address[] calldata path,
-        uint256[] calldata curveIds
-    ) external view returns(uint256[] memory amountsOut) {
-        return ReservoirLibrary.getAmountsOut(address(factory), amountIn, path, curveIds);
+        uint256 aAmountIn,
+        address[] calldata aPath,
+        uint256[] calldata aCurveIds
+    ) external view returns(uint256[] memory rAmountsOut) {
+        rAmountsOut = ReservoirLibrary.getAmountsOut(address(factory), aAmountIn, aPath, aCurveIds);
     }
 
     function getAmountsIn(
-        uint256 amountOut,
-        address[] calldata path,
-        uint256[] calldata curveIds
-    ) external view returns(uint256[] memory amountsIn) {
-        return ReservoirLibrary.getAmountsIn(address(factory), amountOut, path, curveIds);
+        uint256 aAmountOut,
+        address[] calldata aPath,
+        uint256[] calldata aCurveIds
+    ) external view returns(uint256[] memory rAmountsIn) {
+        rAmountsIn = ReservoirLibrary.getAmountsIn(address(factory), aAmountOut, aPath, aCurveIds);
     }
 
     function quoteAddLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 curveId,
-        uint256 amountADesired,
-        uint256 amountBDesired
-    ) external view returns (uint256 amountA, uint256 amountB, uint256 liquidity) {
-        address pair = factory.getPair(tokenA, tokenB, curveId);
-        (uint reserveA, uint reserveB) = (0,0);
-        uint tokenAPrecisionMultiplier = uint256(10) ** (18 - ERC20(tokenA).decimals());
-        uint tokenBPrecisionMultiplier = uint256(10) ** (18 - ERC20(tokenB).decimals());
-        uint _totalSupply = 0;
+        address aTokenA,
+        address aTokenB,
+        uint256 aCurveId,
+        uint256 aAmountADesired,
+        uint256 aAmountBDesired
+    ) external view returns (uint256 rAmountA, uint256 rAmountB, uint256 rLiq) {
+        address lPair = factory.getPair(aTokenA, aTokenB, aCurveId);
+        (uint lReserveA, uint lReserveB) = (0,0);
+        uint lTokenAPrecisionMultiplier = uint256(10) ** (18 - ERC20(aTokenA).decimals());
+        uint lTokenBPrecisionMultiplier = uint256(10) ** (18 - ERC20(aTokenB).decimals());
+        uint lTotalSupply = 0;
 
-        if (pair != address(0)) {
-            _totalSupply = IReservoirPair(pair).totalSupply();
-            (reserveA, reserveB) = ReservoirLibrary.getReserves(address(factory), tokenA, tokenB, curveId);
+        if (lPair != address(0)) {
+            lTotalSupply = IReservoirPair(lPair).totalSupply();
+            (lReserveA, lReserveB) = ReservoirLibrary.getReserves(address(factory), aTokenA, aTokenB, aCurveId);
         }
 
-        if (reserveA == 0 && reserveB == 0) {
-            (amountA, amountB) = (amountADesired, amountBDesired);
-            if (curveId == 0) {
-                liquidity = FixedPointMathLib.sqrt(amountA * amountB) - MINIMUM_LIQUIDITY;
+        if (lReserveA == 0 && lReserveB == 0) {
+            (rAmountA, rAmountB) = (aAmountADesired, aAmountBDesired);
+            if (aCurveId == 0) {
+                rLiq = FixedPointMathLib.sqrt(rAmountA * rAmountB) - MINIMUM_LIQUIDITY;
             }
-            else if (curveId == 1) {
+            else if (aCurveId == 1) {
                 uint256 newLiq = ReservoirLibrary.computeStableLiquidity(
-                    amountA,
-                    amountB,
-                    tokenAPrecisionMultiplier,
-                    tokenBPrecisionMultiplier,
-                    2 * StablePair(pair).getCurrentAPrecise()
+                    rAmountA,
+                    rAmountB,
+                    lTokenAPrecisionMultiplier,
+                    lTokenBPrecisionMultiplier,
+                    2 * StablePair(lPair).getCurrentAPrecise()
                 );
-                liquidity = newLiq - MINIMUM_LIQUIDITY;
+                rLiq = newLiq - MINIMUM_LIQUIDITY;
             }
         }
         else {
-            uint amountBOptimal = ReservoirLibrary.quote(amountADesired, reserveA, reserveB);
-            if (amountBOptimal <= amountBDesired) {
-                (amountA, amountB) = (amountADesired, amountBOptimal);
+            uint lAmountBOptimal = ReservoirLibrary.quote(aAmountADesired, lReserveA, lReserveB);
+            if (lAmountBOptimal <= aAmountBDesired) {
+                (rAmountA, rAmountB) = (aAmountADesired, lAmountBOptimal);
             }
             else {
-                uint amountAOptimal = ReservoirLibrary.quote(amountBDesired, reserveB, reserveA);
-                (amountA, amountB) = (amountAOptimal, amountBDesired);
+                uint lAmountAOptimal = ReservoirLibrary.quote(aAmountBDesired, lReserveB, lReserveA);
+                (rAmountA, rAmountB) = (lAmountAOptimal, aAmountBDesired);
             }
 
-            if (curveId == 0) {
-                liquidity = Math.min(amountA * _totalSupply / reserveA, amountB * _totalSupply / reserveB);
+            if (aCurveId == 0) {
+                rLiq = Math.min(rAmountA * lTotalSupply / lReserveA, rAmountB * lTotalSupply / lReserveB);
             }
-            else if (curveId == 1) {
+            else if (aCurveId == 1) {
                 uint256 oldLiq = ReservoirLibrary.computeStableLiquidity(
-                    reserveA,
-                    reserveB,
-                    tokenAPrecisionMultiplier,
-                    tokenBPrecisionMultiplier,
-                    2 * StablePair(pair).getCurrentAPrecise()
+                    lReserveA,
+                    lReserveB,
+                    lTokenAPrecisionMultiplier,
+                    lTokenBPrecisionMultiplier,
+                    2 * StablePair(lPair).getCurrentAPrecise()
                 );
                 uint256 newLiq = ReservoirLibrary.computeStableLiquidity(
-                    reserveA + amountA,
-                    reserveB + amountB,
-                    tokenAPrecisionMultiplier,
-                    tokenBPrecisionMultiplier,
-                    2 * StablePair(pair).getCurrentAPrecise()
+                    lReserveA + rAmountA,
+                    lReserveB + rAmountB,
+                    lTokenAPrecisionMultiplier,
+                    lTokenBPrecisionMultiplier,
+                    2 * StablePair(lPair).getCurrentAPrecise()
                 );
-                liquidity = (newLiq - oldLiq) * _totalSupply / oldLiq;
+                rLiq = (newLiq - oldLiq) * lTotalSupply / oldLiq;
             }
         }
     }
 
     function quoteRemoveLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 curveId,
-        uint256 liquidity
-    ) external view returns (uint256 amountA, uint256 amountB) {
-        address pair = factory.getPair(tokenA, tokenB, curveId);
+        address aTokenA,
+        address aTokenB,
+        uint256 aCurveId,
+        uint256 aLiq
+    ) external view returns (uint256 rAmountA, uint256 rAmountB) {
+        address lPair = factory.getPair(aTokenA, aTokenB, aCurveId);
 
-        if (pair == address(0)) {
+        if (lPair == address(0)) {
             return (0,0);
         }
 
-        (uint256 reserveA, uint256 reserveB) = ReservoirLibrary.getReserves(address(factory), tokenA, tokenB, curveId);
-        uint256 totalSupply = IReservoirPair(pair).totalSupply();
+        (uint256 lReserveA, uint256 lReserveB) = ReservoirLibrary.getReserves(address(factory), aTokenA, aTokenB, aCurveId);
+        uint256 lTotalSupply = IReservoirPair(lPair).totalSupply();
 
-        amountA = liquidity * reserveA / totalSupply;
-        amountB = liquidity * reserveB / totalSupply;
+        rAmountA = aLiq * lReserveA / lTotalSupply;
+        rAmountB = aLiq * lReserveB / lTotalSupply;
     }
 }
