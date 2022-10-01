@@ -186,7 +186,6 @@ contract ReservoirRouter is
         }
     }
 
-    // perf: to use calldata or memory for path and curveIds?
     function getAmountsOut(
         uint256 amountIn,
         address[] calldata path,

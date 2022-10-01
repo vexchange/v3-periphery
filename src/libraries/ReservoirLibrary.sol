@@ -38,11 +38,11 @@ library ReservoirLibrary {
         }
 
         pair = address(uint160(uint256(keccak256(abi.encodePacked(
-                bytes1(0xff),
-                factory,
-                bytes32(0),
-                keccak256(lInitCode)
-            )))));
+            bytes1(0xff),
+            factory,
+            bytes32(0),
+            keccak256(lInitCode)
+        )))));
     }
 
     function getSwapFee(address factory, address tokenA, address tokenB, uint256 curveId) internal view returns (uint swapFee) {
@@ -175,7 +175,7 @@ library ReservoirLibrary {
         require(curveIds.length == path.length - 1, "RL: CURVE_IDS_INVALID_LENGTH");
         amounts = new uint[](path.length);
         amounts[0] = amountIn;
-        for (uint i; i < path.length - 1; ) {
+        for (uint i = 0; i < path.length - 1; ) {
             (uint reserveIn, uint reserveOut) = getReserves(factory, path[i], path[i + 1], curveIds[i]);
             uint swapFee = getSwapFee(factory, path[i], path[i + 1], curveIds[i]);
             if (curveIds[i] == 0) {

@@ -56,12 +56,12 @@ contract ReservoirRouterTest is BaseTest
 
         // assert
         ReservoirPair lPair = ReservoirPair(
-                                ReservoirLibrary.pairFor(
-                                    address(_factory),
-                                    address(_tokenA),
-                                    address(_tokenB),
-                                    0
-                                ));
+            ReservoirLibrary.pairFor(
+                address(_factory),
+                address(_tokenA),
+                address(_tokenB),
+                0
+        ));
         (uint256 lAmountA, uint256 lAmountB, uint256 lLiquidity) = abi.decode(lResult[0], (uint256, uint256, uint256));
         assertEq(lLiquidity, FixedPointMathLib.sqrt(lAmountA * lAmountB));
         assertEq(lPair.balanceOf(_bob), lLiquidity);
@@ -412,14 +412,13 @@ contract ReservoirRouterTest is BaseTest
         uint64 lA = ReservoirLibrary.getAmplificationCoefficient(address(_stablePair));
 
         // act
-        uint256 lAmountIn
-            = _router.getAmountIn(
-                lAmountOut,
-                lReserve0,
-                lReserve1,
-                1,
-                lSwapFee,
-                ExtraData(lToken0PrecisionMultiplier,lToken1PrecisionMultiplier, lA)
+        uint256 lAmountIn = _router.getAmountIn(
+            lAmountOut,
+            lReserve0,
+            lReserve1,
+            1,
+            lSwapFee,
+            ExtraData(lToken0PrecisionMultiplier,lToken1PrecisionMultiplier, lA)
         );
         _tokenA.mint(address(_stablePair), lAmountIn);
         uint256 lActualAmountOut = _stablePair.swap(-int256(lAmountOut), false, address(this), bytes(""));
@@ -627,6 +626,11 @@ contract ReservoirRouterTest is BaseTest
         assertEq(lAmountsReturned, lAmounts);
     }
 
+    function testSwapExactForVariable_MixedCurves() public
+    {
+
+    }
+
     function testSwapVariableForExact(uint256 aAmtIn) public
     {
         // arrange
@@ -755,5 +759,10 @@ contract ReservoirRouterTest is BaseTest
 
         // assert
         assertEq(address(this).balance, lAmtOut);
+    }
+
+    function testSwapVariableForExact_MixedCurves() public
+    {
+
     }
 }

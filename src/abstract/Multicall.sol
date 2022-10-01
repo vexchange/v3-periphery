@@ -8,7 +8,7 @@ import { IMulticall } from "src/interfaces/IMulticall.sol";
 /// @author Modified from Uniswap (https://github.com/Uniswap/v3-periphery/blob/main/contracts/base/Multicall.sol)
 /// License-Identifier: GPL-2.0-or-later
 abstract contract Multicall is IMulticall {
-    function multicall(bytes[] calldata data) public payable returns (bytes[] memory results) {
+    function multicall(bytes[] calldata data) external payable returns (bytes[] memory results) {
         results = new bytes[](data.length);
 
         for (uint256 i; i < data.length;) {
