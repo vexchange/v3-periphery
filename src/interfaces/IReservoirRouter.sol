@@ -13,96 +13,96 @@ interface IReservoirRouter {
     //////////////////////////////////////////////////////////////////////////*/
 
     function addLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 curveId,
-        uint amountADesired,
-        uint amountBDesired,
-        uint amountAMin,
-        uint amountBMin,
-        address to
-    ) external payable returns (uint256 amountA, uint256 amountB, uint256 liquidity);
+        address aTokenA,
+        address aTokenB,
+        uint256 aCurveId,
+        uint aAmountADesired,
+        uint aAmountBDesired,
+        uint aAmountAMin,
+        uint aAmountBMin,
+        address aTo
+    ) external payable returns (uint256 rAmountA, uint256 rAmountB, uint256 rLiq);
 
     function removeLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 curveId,
-        uint256 liquidity,
-        uint256 amountAMin,
-        uint256 amountBMin,
-        address to
-    ) external returns (uint256 amountA, uint256 amountB);
+        address aTokenA,
+        address aTokenB,
+        uint256 aCurveId,
+        uint256 aLiq,
+        uint256 aAmountAMin,
+        uint256 aAmountBMin,
+        address aTo
+    ) external payable returns (uint256 rAmountA, uint256 rAmountB);
 
     /*//////////////////////////////////////////////////////////////////////////
                                 SWAP METHODS
     //////////////////////////////////////////////////////////////////////////*/
 
     function swapExactForVariable(
-        uint256 amountIn,
-        uint256 amountOutMin,
-        address[] calldata path,
-        uint256[] calldata curveIds,
-        address to
-    ) external payable returns (uint256[] memory amounts);
+        uint256 aAmountIn,
+        uint256 aAmountOutMin,
+        address[] calldata aPath,
+        uint256[] calldata aCurveIds,
+        address aTo
+    ) external payable returns (uint256[] memory rAmounts);
 
     function swapVariableForExact(
-        uint256 amountOut,
-        uint256 amountInMax,
-        address[] calldata path,
-        uint256[] calldata curveIds,
-        address to
-    ) external payable returns (uint256[] memory amounts);
+        uint256 aAmountOut,
+        uint256 aAmountInMax,
+        address[] calldata aPath,
+        uint256[] calldata aCurveIds,
+        address aTo
+    ) external payable returns (uint256[] memory rAmounts);
 
     /*//////////////////////////////////////////////////////////////////////////
                                 QUERY METHODS (VIEW)
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @param extraData for StablePair use, to leave blank for ConstantProductPair. See ReservoirLibrary
+    /// @param aExtraData for StablePair use, to leave blank for ConstantProductPair. See ReservoirLibrary
     function getAmountOut(
-        uint256 amountIn,
-        uint256 reserveIn,
-        uint256 reserveOut,
-        uint256 curveId,
-        uint256 swapFee,
-        ExtraData calldata extraData
-    ) external pure returns(uint256 amountOut);
+        uint256 aAmountIn,
+        uint256 aReserveIn,
+        uint256 aReserveOut,
+        uint256 aCurveId,
+        uint256 aSwapFee,
+        ExtraData calldata aExtraData
+    ) external pure returns(uint256 rAmountOut);
 
-    /// @param extraData for StablePair use, to leave blank for ConstantProductPair. See ReservoirLibrary
+    /// @param aExtraData for StablePair use, to leave blank for ConstantProductPair. See ReservoirLibrary
     function getAmountIn(
-        uint256 amountOut,
-        uint256 reserveIn,
-        uint256 reserveOut,
-        uint256 curveId,
-        uint256 swapFee,
-        ExtraData calldata extraData
-    ) external pure returns(uint256 amountIn);
+        uint256 aAmountOut,
+        uint256 aReserveIn,
+        uint256 aReserveOut,
+        uint256 aCurveId,
+        uint256 aSwapFee,
+        ExtraData calldata aExtraData
+    ) external pure returns(uint256 rAmountIn);
 
-    /// @param path array of ERC20 tokens to swap into
+    /// @param aPath array of ERC20 tokens to swap into
     function getAmountsOut(
-        uint256 amountIn,
-        address[] calldata path,
-        uint256[] calldata curveIds
-    ) external view returns(uint256[] memory amountsOut);
+        uint256 aAmountIn,
+        address[] calldata aPath,
+        uint256[] calldata aCurveIds
+    ) external view returns(uint256[] memory rAmountsOut);
 
-    /// @param path array of ERC20 tokens to swap into
+    /// @param aPath array of ERC20 tokens to swap into
     function getAmountsIn(
-        uint256 amountOut,
-        address[] calldata path,
-        uint256[] calldata curveIds
-    ) external view returns(uint256[] memory amountsIn);
+        uint256 aAmountOut,
+        address[] calldata aPath,
+        uint256[] calldata aCurveIds
+    ) external view returns(uint256[] memory rAmountsIn);
 
     function quoteAddLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 curveId,
-        uint256 amountADesired,
-        uint256 amountBDesired
-    ) external view returns (uint256 amountA, uint256 amountB, uint256 liquidity);
+        address aTokenA,
+        address aTokenB,
+        uint256 aCurveId,
+        uint256 aAmountADesired,
+        uint256 aAmountBDesired
+    ) external view returns (uint256 rAmountA, uint256 rAmountB, uint256 rLiq);
 
     function quoteRemoveLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 curveId,
-        uint256 liquidity
-    ) external view returns (uint256 amountA, uint256 amountB);
+        address aTokenA,
+        address aTokenB,
+        uint256 aCurveId,
+        uint256 aLiq
+    ) external view returns (uint256 rAmountA, uint256 rAmountB);
 }

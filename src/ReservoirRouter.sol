@@ -88,7 +88,7 @@ contract ReservoirRouter is
         uint256 aAmountAMin,
         uint256 aAmountBMin,
         address aTo
-    ) external /*payable*/ returns (uint256 rAmountA, uint256 rAmountB) {
+    ) external payable returns (uint256 rAmountA, uint256 rAmountB) {
         require(aTo != address(0), "RR: TO_ZERO_ADDRESS");
         address lPair = ReservoirLibrary.pairFor(address(factory), aTokenA, aTokenB, aCurveId);
         IReservoirPair(lPair).transferFrom(msg.sender, lPair, aLiq);
