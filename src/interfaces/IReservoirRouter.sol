@@ -33,11 +33,6 @@ interface IReservoirRouter {
         address to
     ) external returns (uint256 amountA, uint256 amountB);
 
-    // the implementation these two functions take a lower priority
-    // will implement when we have the time, and does not block merge
-    // function addLiquiditySingle(address pair, address token, uint256 amountIn) external returns (uint256 liquidity);
-    // function removeLiquiditySingle(address pair, address token, uint256 lpTokenAmount) external returns (uint256 amount);
-
     /*//////////////////////////////////////////////////////////////////////////
                                 SWAP METHODS
     //////////////////////////////////////////////////////////////////////////*/
