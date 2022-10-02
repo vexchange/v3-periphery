@@ -168,8 +168,8 @@ library ReservoirLibrary {
     function getAmountsOut(
         address aFactory,
         uint256 aAmountIn,
-        address[] calldata aPath,
-        uint256[] calldata aCurveIds
+        address[] memory aPath,
+        uint256[] memory aCurveIds
     ) internal view returns (uint256[] memory rAmounts) {
         require(aPath.length >= 2, "RL: INVALID_PATH");
         require(aCurveIds.length == aPath.length - 1, "RL: CURVE_IDS_INVALID_LENGTH");
@@ -197,8 +197,8 @@ library ReservoirLibrary {
     function getAmountsIn(
         address aFactory,
         uint256 aAmountOut,
-        address[] calldata aPath,
-        uint256[] calldata aCurveIds
+        address[] memory aPath,
+        uint256[] memory aCurveIds
     ) internal view returns (uint[] memory rAmounts) {
         require(aPath.length >= 2, "RL: INVALID_PATH");
         require(aCurveIds.length == aPath.length - 1, "RL: CURVE_IDS_INVALID_LENGTH");

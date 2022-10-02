@@ -303,234 +303,26 @@ contract ReservoirRouterTest is BaseTest
         _router.multicall(_data);
     }
 
-    function testGetAmountOut_ErrorChecking(uint256 aCurveId, uint256 aAmountIn) public
+    function testSwapExactForVariable(uint256 aAmtBToMint, uint256 aAmtCToMint, uint256 aAmtIn) public
     {
-        // assume - might not be the best solution, but it prevents repeated code
-        aCurveId = bound(aCurveId, 0, 1);
-        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max);
-
-        // act & revert
-        vm.expectRevert("RL: INSUFFICIENT_INPUT_AMOUNT");
-        _router.getAmountOut(0, 10, 10, aCurveId, 30, ExtraData(0,0,0));
-
-        vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
-        _router.getAmountOut(lAmountIn, 0, 0, aCurveId, 0, ExtraData(0,0,0));
-    }
-
-    function testGetAmountOut_CP(uint256 aAmountIn) public
-    {
-        // assume
-        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max);
-
         // arrange
-        (uint112 lReserve0, uint112 lReserve1, ) = _constantProductPair.getReserves();
-        _tokenA.mint(address(_constantProductPair), lAmountIn);
-        uint256 lSwapFee = _constantProductPair.swapFee();
-
-        // act
-        uint256 lAmountOut = _router.getAmountOut(lAmountIn, lReserve0, lReserve1, 0, lSwapFee, ExtraData(0,0,0));
-        uint256 lActualAmountOut = _constantProductPair.swap(int256(lAmountIn), true, address(this), bytes(""));
-
-        // assert
-        assertLt(lAmountOut, lAmountIn);
-        assertEq(lAmountOut, lActualAmountOut);
-    }
-
-    function testGetAmountOut_SP(uint256 aAmountIn) public
-    {
-        // assume
-        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max);
-
-        // arrange
-        (uint112 lReserve0, uint112 lReserve1, ) = _stablePair.getReserves();
-        _tokenA.mint(address(_stablePair), lAmountIn);
-        uint256 lSwapFee = _stablePair.swapFee();
-        uint64 lToken0PrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(_stablePair.token0());
-        uint64 lToken1PrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(_stablePair.token1());
-        uint64 lA = ReservoirLibrary.getAmplificationCoefficient(address(_stablePair));
-
-        // act
-        uint256 lAmountOut
-            = _router.getAmountOut(
-                lAmountIn,
-                lReserve0,
-                lReserve1,
-                1,
-                lSwapFee,
-                ExtraData(lToken0PrecisionMultiplier,lToken1PrecisionMultiplier, lA)
-        );
-        uint256 lActualAmountOut = _stablePair.swap(int256(lAmountIn), true, address(this), bytes(""));
-
-        // assert
-        assertLt(lAmountOut, lAmountIn);
-        assertEq(lAmountOut, lActualAmountOut);
-    }
-
-    function testGetAmountIn_ErrorChecking(uint256 aCurveId, uint256 aAmountOut) public
-    {
-        // assume
-        aCurveId = bound(aCurveId, 0, 1);
-        uint256 aAmountOut = bound(aAmountOut, 1, type(uint112).max);
-
-        // act & revert
-        vm.expectRevert("RL: INSUFFICIENT_OUTPUT_AMOUNT");
-        _router.getAmountIn(0, 10, 10, aCurveId, 30, ExtraData(0,0,0));
-
-        vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
-        _router.getAmountIn(aAmountOut, 0, 0, aCurveId, 0, ExtraData(0,0,0));
-    }
-
-    function testGetAmountIn_CP(uint256 aAmountOut) public
-    {
-        // assume
-        (uint112 lReserve0, uint112 lReserve1, ) = _constantProductPair.getReserves();
-        uint256 lAmountOut = bound(aAmountOut, 1000, lReserve1 / 2);
-
-        // arrange
-        uint256 lSwapFee = _constantProductPair.swapFee();
-
-        // act
-        uint256 lAmountIn = _router.getAmountIn(lAmountOut, lReserve0, lReserve1, 0, lSwapFee, ExtraData(0,0,0));
-        _tokenA.mint(address(_constantProductPair), lAmountIn);
-        uint256 lActualAmountOut = _constantProductPair.swap(-int256(lAmountOut), false, address(this), bytes(""));
-
-        // assert
-        assertLt(lAmountOut, lAmountIn);
-        assertEq(lAmountOut, lActualAmountOut);
-    }
-
-    function testGetAmountIn_SP(uint256 aAmountOut) public
-    {
-        // assume
-        (uint112 lReserve0, uint112 lReserve1, ) = _stablePair.getReserves();
-        uint256 lAmountOut = bound(aAmountOut, 1, lReserve1 / 2);
-
-        // arrange
-        uint256 lSwapFee = _stablePair.swapFee();
-        uint64 lToken0PrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(_stablePair.token0());
-        uint64 lToken1PrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(_stablePair.token1());
-        uint64 lA = ReservoirLibrary.getAmplificationCoefficient(address(_stablePair));
-
-        // act
-        uint256 lAmountIn = _router.getAmountIn(
-            lAmountOut,
-            lReserve0,
-            lReserve1,
-            1,
-            lSwapFee,
-            ExtraData(lToken0PrecisionMultiplier,lToken1PrecisionMultiplier, lA)
-        );
-        _tokenA.mint(address(_stablePair), lAmountIn);
-        uint256 lActualAmountOut = _stablePair.swap(-int256(lAmountOut), false, address(this), bytes(""));
-
-        // assert
-        assertLt(lAmountOut, lAmountIn);
-        assertEq(lAmountOut, lActualAmountOut);
-    }
-
-    function testGetAmountsOut_CP(uint256 aAmtBToMint, uint256 aAmtCToMint, uint256 aAmtIn) public
-        returns (uint256 lAmtIn, uint256[] memory lAmounts, address[] memory lPath, uint256[] memory lCurveIds)
-    {
-        // assume
-        uint256 lAmtBToMint = bound(aAmtBToMint, 2e3, type(uint112).max / 2);
-        uint256 lAmtCToMint = bound(aAmtCToMint, 2e3, type(uint112).max / 2);
-        lAmtIn = bound(aAmtIn, 2e3, type(uint112).max / 2);
-
-        // arrange
-        ConstantProductPair lOtherPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenC), 0));
-        _tokenB.mint(address(lOtherPair), lAmtBToMint);
-        _tokenC.mint(address(lOtherPair), lAmtCToMint);
-        lOtherPair.mint(address(this));
-
-        // act
-        lPath = new address[](3);
-        lPath[0] = address(_tokenA);
-        lPath[1] = address(_tokenB);
-        lPath[2] = address(_tokenC);
-        lCurveIds = new uint256[](2);
-        lCurveIds[0] = 0;
-        lCurveIds[1] = 0;
-
-        lAmounts = _router.getAmountsOut(lAmtIn, lPath, lCurveIds);
-
-        // assert
-
-    }
-
-    function testGetAmountsOut_SP() public
-    {
-
-    }
-
-    function testGetAmountsOut_MixCurves(uint256 aAmtBToMint, uint256 aAmtCToMint, uint256 aAmtIn) public
-    {
-        // assume
         uint256 lAmtBToMint = bound(aAmtBToMint, 2e3, type(uint112).max / 2);
         uint256 lAmtCToMint = bound(aAmtCToMint, 2e3, type(uint112).max / 2);
         uint256 lAmtIn = bound(aAmtIn, 2e3, type(uint112).max / 2);
-
-        // arrange
         ConstantProductPair lOtherPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenC), 0));
         _tokenB.mint(address(lOtherPair), lAmtBToMint);
         _tokenC.mint(address(lOtherPair), lAmtCToMint);
         lOtherPair.mint(address(this));
 
-        // act
         address[] memory lPath = new address[](3);
         lPath[0] = address(_tokenA);
         lPath[1] = address(_tokenB);
         lPath[2] = address(_tokenC);
         uint256[] memory lCurveIds = new uint256[](2);
-        lCurveIds[0] = 1;
+        lCurveIds[0] = 0;
         lCurveIds[1] = 0;
-
         uint256[] memory lAmounts = _router.getAmountsOut(lAmtIn, lPath, lCurveIds);
 
-        // assert
-
-    }
-
-    function testGetAmountsIn_CP() public
-    {
-
-    }
-
-    // cannot use fuzz for mint amounts for new pair because the intermediate amountOuts might exceed the reserve of the next pair
-    function testGetAmountsIn_SP(uint256 aAmtOut) public
-        returns (uint256 lAmtOut, uint256[] memory lAmounts, address[] memory lPath, uint256[] memory lCurveIds)
-    {
-        // assume
-        // limiting the max to INITIAL_MINT_AMOUNT / 2 for now as
-        // having a large number will cause intermediate amounts to exceed reserves
-        lAmtOut = bound(aAmtOut, 1e3, INITIAL_MINT_AMOUNT / 2);
-
-        // arrange
-        StablePair lOtherPair = StablePair(_createPair(address(_tokenB), address(_tokenC), 1));
-        _tokenB.mint(address(lOtherPair), INITIAL_MINT_AMOUNT);
-        _tokenC.mint(address(lOtherPair), INITIAL_MINT_AMOUNT);
-        lOtherPair.mint(address(this));
-
-        // act
-        lPath = new address[](3);
-        lPath[0] = address(_tokenA);
-        lPath[1] = address(_tokenB);
-        lPath[2] = address(_tokenC);
-        lCurveIds = new uint256[](2);
-        lCurveIds[0] = 1;
-        lCurveIds[1] = 1;
-
-        lAmounts = _router.getAmountsIn(lAmtOut, lPath, lCurveIds);
-
-        // assert
-        assertEq(lAmounts[2], lAmtOut);
-        assertGt(lAmounts[0], lAmtOut);
-    }
-
-    function testSwapExactForVariable(uint256 aAmtBToMint, uint256 aAmtCToMint, uint256 aAmtIn) public
-    {
-        // arrange
-        (uint256 lAmtIn, uint256[] memory lAmounts, address[] memory lPath, uint256[] memory lCurveIds)
-            = testGetAmountsOut_CP(aAmtBToMint, aAmtCToMint, aAmtIn);
         uint256 lAmountOutMin = lAmounts[lAmounts.length - 1] * 99 / 100; // 1% slippage
 
         _tokenA.mint(address(this), lAmtIn);
@@ -631,11 +423,26 @@ contract ReservoirRouterTest is BaseTest
 
     }
 
-    function testSwapVariableForExact(uint256 aAmtIn) public
+    function testSwapVariableForExact(uint256 aAmtOut) public
     {
-        // arrange
-        (uint256 lAmtOut, uint256[] memory lAmounts, address[] memory lPath, uint256[] memory lCurveIds)
-            = testGetAmountsIn_SP(aAmtIn);
+        // arrange;
+        StablePair lOtherPair = StablePair(_createPair(address(_tokenB), address(_tokenC), 1));
+        _tokenB.mint(address(lOtherPair), INITIAL_MINT_AMOUNT);
+        _tokenC.mint(address(lOtherPair), INITIAL_MINT_AMOUNT);
+        lOtherPair.mint(address(this));
+
+        address[] memory lPath = new address[](3);
+        lPath[0] = address(_tokenA);
+        lPath[1] = address(_tokenB);
+        lPath[2] = address(_tokenC);
+        uint256[] memory lCurveIds = new uint256[](2);
+        lCurveIds[0] = 1;
+        lCurveIds[1] = 1;
+
+        uint256 lAmtOut = bound(aAmtOut, 1e3, INITIAL_MINT_AMOUNT / 2);
+
+        uint256[] memory lAmounts = _router.getAmountsIn(lAmtOut, lPath, lCurveIds);
+
         uint256 lAmountInMax = lAmounts[0] * 101 / 100; // 1% slippage
 
         _tokenA.mint(address(this), lAmounts[0]);
