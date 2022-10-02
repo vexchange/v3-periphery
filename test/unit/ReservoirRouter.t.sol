@@ -572,4 +572,43 @@ contract ReservoirRouterTest is BaseTest
     {
 
     }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                        DIFFERENTIAL TESTING AGAINST LIB
+    //////////////////////////////////////////////////////////////////////////*/
+
+    function testGetAmountOutConstantProduct(uint256 aAmtIn, uint256 aReserveIn, uint256 aReserveOut, uint256 aSwapFee) public
+    {
+        // assume
+        uint256 lAmtIn = bound(aAmtIn, 1, type(uint112).max);
+        uint256 lReserveIn = bound(aReserveIn, 1, type(uint112).max);
+        uint256 lReserveOut = bound(aReserveOut, 1, type(uint112).max);
+        uint256 lSwapFee = bound(aSwapFee, 0, 200); // max swap fee is 2% configured in Pair.sol
+
+        // act
+        uint256 lLibOutput = ReservoirLibrary.getAmountOutConstantProduct(lAmtIn, lReserveIn, lReserveOut, lSwapFee);
+        uint256 lOutput = _router.getAmountOut(lAmtIn, lReserveIn, lReserveOut, 0, lSwapFee, ExtraData(0,0,0));
+
+        // assert
+        assertEq(lLibOutput, lOutput);
+    }
+
+    function testGetAmountOutStable(uint256 aAmtIn, uint256 aReserveIn, uint256 aReserveOut, uint256 aSwapFee, uint256 aAmpCoeff) public
+    {
+        // assume
+        uint256 lReserveIn = bound(aReserveIn, 1e6, type(uint112).max);
+        uint256 lReserveOut = bound(aReserveOut, lReserveIn / 1e3, Math.min(lReserveIn * 1e3, type(uint112).max));
+        uint256 lAmtIn = bound(aAmtIn, 1e6, type(uint112).max);
+        uint256 lSwapFee = bound(aSwapFee, 0, 200);
+        uint256 lAmpCoefficient = bound(aSwapFee, 100, 1000000);
+
+        ExtraData memory lData = ExtraData(1, 1, uint64(lAmpCoefficient));
+
+        // act
+        uint256 lLibOutput = ReservoirLibrary.getAmountOutStable(lAmtIn, lReserveIn, lReserveOut, lSwapFee, lData);
+        uint256 lOutput = _router.getAmountOut(lAmtIn, lReserveIn, lReserveOut, 1, lSwapFee, lData);
+
+        // assert
+        assertEq(lLibOutput, lOutput);
+    }
 }
