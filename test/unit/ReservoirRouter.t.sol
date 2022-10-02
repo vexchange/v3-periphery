@@ -582,9 +582,9 @@ contract ReservoirRouterTest is BaseTest
         bytes[] memory lResult = _router.multicall{value: lAmtIn}(_data);
 
         // assert
-        uint256[] memory lAmountsReturned = abi.decode(lResult[0], (uint256[]));
+        uint256 lAmountOut = abi.decode(lResult[0], (uint256));
         assertEq(_tokenB.balanceOf(address(this)), lAmounts[lAmounts.length - 1]);
-        assertEq(lAmountsReturned, lAmounts);
+        assertEq(lAmountOut, lAmounts[lAmounts.length - 1]);
     }
 
     function testSwapExactForVariable_NativeOut() public
@@ -621,9 +621,9 @@ contract ReservoirRouterTest is BaseTest
         bytes[] memory lResult = _router.multicall(_data);
 
         // assert
-        uint256[] memory lAmountsReturned = abi.decode(lResult[0], (uint256[]));
+        uint256 lAmountOut = abi.decode(lResult[0], (uint256));
         assertEq(_cal.balance, lAmounts[lAmounts.length - 1]);
-        assertEq(lAmountsReturned, lAmounts);
+        assertEq(lAmountOut, _cal.balance);
     }
 
     function testSwapExactForVariable_MixedCurves() public

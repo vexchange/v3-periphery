@@ -101,29 +101,27 @@ contract ReservoirRouter is
         require(rAmountB >= aAmountBMin, "RR: INSUFFICIENT_B_AMOUNT");
     }
 
-    // **** SWAP ****
-    // requires the initial amount to have already been sent to the first pair
-    /// @param aInOrOut true for exact in, false for exact out
-    function _swap(uint[] memory aAmounts, bool aInOrOut, address[] memory aPath, uint256[] memory aCurveIds, address aTo) internal {
+    /// @dev requires the initial amount to have already been sent to the first pair
+    function _swapExactForVariable(uint256 aAmountIn, address[] memory aPath, uint256[] memory aCurveIds, address aTo)
+        internal returns (uint256 rFinalAmount) {
+        require(aAmountIn <= uint256(type(int256).max), "RR: CAST_WOULD_OVERFLOW");
+        int256 lAmount = int256(aAmountIn);
         for (uint i; i < aPath.length - 1; ) {
             (address lInput, address lOutput) = (aPath[i], aPath[i + 1]);
             (address lToken0,) = ReservoirLibrary.sortTokens(lInput, lOutput);
-            address lTo = i < aPath.length - 2 ? ReservoirLibrary.pairFor(address(factory), lOutput, aPath[i + 2], aCurveIds[i + 1]) : aTo;
+            address lTo = i < aPath.length - 2
+                ? ReservoirLibrary.pairFor(address(factory), lOutput, aPath[i + 2], aCurveIds[i + 1])
+                : aTo;
+            lAmount = lInput == lToken0 ? int256(lAmount) : -int256(lAmount);
 
-            int256 lAmount;
-            if (aInOrOut) {
-                lAmount = lInput == lToken0 ? int256(aAmounts[i]) : -int256(aAmounts[i]);
-            }
-            else {
-                lAmount = lOutput == lToken0 ? int256(aAmounts[i + 1]) : -int256(aAmounts[i + 1]);
-            }
-
-            IReservoirPair(ReservoirLibrary.pairFor(address(factory), lInput, lOutput, aCurveIds[i])).swap(
-                lAmount, aInOrOut, lTo, new bytes(0)
+            uint256 lAmtOut = IReservoirPair(ReservoirLibrary.pairFor(address(factory), lInput, lOutput, aCurveIds[i])).swap(
+                lAmount, true, lTo, new bytes(0)
             );
-
+            lAmount = int256(lAmtOut);
             unchecked { i += 1; }
         }
+        // lAmount is guaranteed to be positive at this point
+        rFinalAmount = uint256(lAmount);
     }
 
     function swapExactForVariable(
@@ -132,13 +130,29 @@ contract ReservoirRouter is
         address[] calldata aPath,
         uint256[] calldata aCurveIds,
         address aTo
-    ) external payable returns (uint256[] memory rAmounts) {
-        rAmounts = ReservoirLibrary.getAmountsOut(address(factory), aAmountIn, aPath, aCurveIds);
-        // but the actual swap results might be diff from this. Should we move the require into _swap to check for the minOut?
-        require(rAmounts[rAmounts.length - 1] >= aAmountOutMin, "RL: INSUFFICIENT_OUTPUT_AMOUNT");
+    ) external payable returns (uint256 rAmountOut) {
+        _pay(aPath[0], msg.sender, ReservoirLibrary.pairFor(address(factory), aPath[0], aPath[1], aCurveIds[0]), aAmountIn);
+        rAmountOut = _swapExactForVariable(aAmountIn, aPath, aCurveIds, aTo);
+        require(rAmountOut >= aAmountOutMin, "RL: INSUFFICIENT_OUTPUT_AMOUNT");
+    }
 
-        _pay(aPath[0], msg.sender, ReservoirLibrary.pairFor(address(factory), aPath[0], aPath[1], aCurveIds[0]), rAmounts[0]);
-        _swap(rAmounts, true, aPath, aCurveIds, aTo);
+    /// @dev requires the initial amount to have already been sent to the first pair
+    function _swapVariableForExact(uint256[] memory aAmounts, address[] memory aPath, uint256[] memory aCurveIds, address aTo) internal {
+        for (uint i; i < aPath.length - 1; ) {
+            (address lInput, address lOutput) = (aPath[i], aPath[i + 1]);
+            (address lToken0,) = ReservoirLibrary.sortTokens(lInput, lOutput);
+            address lTo = i < aPath.length - 2
+                ? ReservoirLibrary.pairFor(address(factory), lOutput, aPath[i + 2], aCurveIds[i + 1])
+                : aTo;
+
+            int256 lAmount = lOutput == lToken0 ? int256(aAmounts[i + 1]) : -int256(aAmounts[i + 1]);
+
+            IReservoirPair(ReservoirLibrary.pairFor(address(factory), lInput, lOutput, aCurveIds[i])).swap(
+                lAmount, false, lTo, new bytes(0)
+            );
+
+            unchecked { i += 1; }
+        }
     }
 
     function swapVariableForExact(
@@ -152,7 +166,7 @@ contract ReservoirRouter is
         require(rAmounts[0] <= aAmountInMax, "RL: EXCESSIVE_INPUT_AMOUNT");
 
         _pay(aPath[0], msg.sender, ReservoirLibrary.pairFor(address(factory), aPath[0], aPath[1], aCurveIds[0]), rAmounts[0]);
-        _swap(rAmounts, false, aPath, aCurveIds, aTo);
+        _swapVariableForExact(rAmounts, aPath, aCurveIds, aTo);
     }
 
     function getAmountOut(

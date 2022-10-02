@@ -43,7 +43,7 @@ interface IReservoirRouter {
         address[] calldata aPath,
         uint256[] calldata aCurveIds,
         address aTo
-    ) external payable returns (uint256[] memory rAmounts);
+    ) external payable returns (uint256 rAmountOut);
 
     function swapVariableForExact(
         uint256 aAmountOut,
