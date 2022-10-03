@@ -106,7 +106,7 @@ contract ReservoirRouter is
         uint256[] memory aCurveIds,
         address aTo
     ) private returns (uint256 rFinalAmount) {
-        require(aAmountIn <= type(uint112).max, "RR: CAST_WOULD_OVERFLOW");
+        require(aAmountIn <= type(uint112).max, "RR: AMOUNT_IN_TOO_LARGE");
         int256 lAmount = int256(aAmountIn);
         for (uint i = 0; i < aPath.length - 1; ) {
             (address lInput, address lOutput) = (aPath[i], aPath[i + 1]);
