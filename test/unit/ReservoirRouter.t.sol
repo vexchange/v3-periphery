@@ -365,7 +365,7 @@ contract ReservoirRouterTest is BaseTest
         assertGt(_tokenB.balanceOf(_bob), 0);
 
         // act & assert
-        vm.expectRevert("RL: INSUFFICIENT_OUTPUT_AMOUNT");
+        vm.expectRevert("RR: INSUFFICIENT_OUTPUT_AMOUNT");
         _router.swapExactForVariable(lAmtIn, lAmountOutMin, lPath, lCurveIds, address(this));
     }
 
