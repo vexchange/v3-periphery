@@ -81,15 +81,14 @@ contract ReservoirLibraryTest is BaseTest
     function testGetAmountIn_InsufficientLiquidity(uint256 aAmountOut) public
     {
         // assume
-        uint256 aAmountOut = bound(aAmountOut, 1, type(uint112).max);
+        uint256 lAmountOut = bound(aAmountOut, 1, type(uint112).max);
 
         // act & assert
         vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
-        ReservoirLibrary.getAmountInConstantProduct(aAmountOut, 0, 0, 0);
+        ReservoirLibrary.getAmountInConstantProduct(lAmountOut, 0, 0, 0);
 
         vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
-        ReservoirLibrary.getAmountInStable(aAmountOut, 0, 0, 0, ExtraData(0,0,0));
-
+        ReservoirLibrary.getAmountInStable(lAmountOut, 0, 0, 0, ExtraData(0,0,0));
     }
 
     function testGetAmountIn_InsufficientOutputAmount() public
@@ -149,12 +148,12 @@ contract ReservoirLibraryTest is BaseTest
         assertEq(lAmountOut, lActualAmountOut);
     }
 
-    function testGetAmountsOut_CP(uint256 aAmtBToMint, uint256 aAmtCToMint, uint256 aAmtIn) public
+    function testGetAmountsOut_CP() public
     {
         // assume
-        uint256 lAmtBToMint = bound(aAmtBToMint, 2e3, type(uint112).max / 2);
-        uint256 lAmtCToMint = bound(aAmtCToMint, 2e3, type(uint112).max / 2);
-        uint256 lAmtIn = bound(aAmtIn, 2e3, type(uint112).max / 2);
+        uint256 lAmtBToMint = 1000e18;
+        uint256 lAmtCToMint = 10_000_000e18;
+        uint256 lAmtIn = 49382e18;
 
         // arrange
         ConstantProductPair lOtherPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenC), 0));
@@ -174,20 +173,47 @@ contract ReservoirLibraryTest is BaseTest
         uint256[] memory lAmounts = ReservoirLibrary.getAmountsOut(address(_factory), lAmtIn, lPath, lCurveIds);
 
         // assert
-
+        assertEq(lAmounts[0], lAmtIn);
+        assertEq(lAmounts[1], 99797299436610000102);
+        assertEq(lAmounts[2], 904939489708253368940016);
     }
 
     function testGetAmountsOut_SP() public
     {
+        // assume
+        uint256 lAmtBToMint = 12_392_592e18;
+        uint256 lAmtCToMint = 6_391_019e18;
+        uint256 lAmtIn = 49382e18;
 
+        // arrange
+        StablePair lOtherPair = StablePair(_createPair(address(_tokenB), address(_tokenC), 1));
+        _tokenB.mint(address(lOtherPair), lAmtBToMint);
+        _tokenC.mint(address(lOtherPair), lAmtCToMint);
+        lOtherPair.mint(address(this));
+
+        // act
+        address[] memory lPath = new address[](3);
+        lPath[0] = address(_tokenA);
+        lPath[1] = address(_tokenB);
+        lPath[2] = address(_tokenC);
+        uint256[] memory lCurveIds = new uint256[](2);
+        lCurveIds[0] = 1;
+        lCurveIds[1] = 1;
+
+        uint256[] memory lAmounts = ReservoirLibrary.getAmountsOut(address(_factory), lAmtIn, lPath, lCurveIds);
+
+        // assert
+        assertEq(lAmounts[0], lAmtIn);
+        assertEq(lAmounts[1], 99999999587453182806);
+        assertEq(lAmounts[2], 99621119129708441046);
     }
 
-    function testGetAmountsOut_MixCurves(uint256 aAmtBToMint, uint256 aAmtCToMint, uint256 aAmtIn) public
+    function testGetAmountsOut_MixedCurves() public
     {
         // assume
-        uint256 lAmtBToMint = bound(aAmtBToMint, 2e3, type(uint112).max / 2);
-        uint256 lAmtCToMint = bound(aAmtCToMint, 2e3, type(uint112).max / 2);
-        uint256 lAmtIn = bound(aAmtIn, 2e3, type(uint112).max / 2);
+        uint256 lAmtBToMint = 10_000_000e18;
+        uint256 lAmtCToMint = 1000e18;
+        uint256 lAmtIn = 500e18;
 
         // arrange
         ConstantProductPair lOtherPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenC), 0));
@@ -207,12 +233,34 @@ contract ReservoirLibraryTest is BaseTest
         uint256[] memory lAmounts = ReservoirLibrary.getAmountsOut(address(_factory), lAmtIn, lPath, lCurveIds);
 
         // assert
-
+        assertEq(lAmounts[0], lAmtIn);
+        assertEq(lAmounts[lAmounts.length - 1], 9969482692285773);
     }
 
     function testGetAmountsIn_CP() public
     {
+        // arrange
+        uint256 lAmtOut = 20e18;
+        ConstantProductPair lOtherPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenC), 0));
+        _tokenB.mint(address(lOtherPair), INITIAL_MINT_AMOUNT);
+        _tokenC.mint(address(lOtherPair), INITIAL_MINT_AMOUNT);
+        lOtherPair.mint(address(this));
 
+        // act
+        address[] memory lPath = new address[](3);
+        lPath[0] = address(_tokenA);
+        lPath[1] = address(_tokenB);
+        lPath[2] = address(_tokenC);
+        uint256[] memory lCurveIds = new uint256[](2);
+        lCurveIds[0] = 0;
+        lCurveIds[1] = 0;
+
+        uint256[] memory lAmounts = ReservoirLibrary.getAmountsIn(address(_factory), lAmtOut, lPath, lCurveIds);
+
+        // assert
+        assertEq(lAmounts[0], 33567905859479375208);
+        assertEq(lAmounts[1], 25075225677031093280);
+        assertEq(lAmounts[2], lAmtOut);
     }
 
     // cannot use fuzz for mint amounts for new pair because the intermediate amountOuts might exceed the reserve of the next pair
@@ -238,10 +286,33 @@ contract ReservoirLibraryTest is BaseTest
         lCurveIds[0] = 1;
         lCurveIds[1] = 1;
 
-        uint256[] memory lAmounts = ReservoirLibrary.getAmountsIn(address(_factory),lAmtOut, lPath, lCurveIds);
+        uint256[] memory lAmounts = ReservoirLibrary.getAmountsIn(address(_factory), lAmtOut, lPath, lCurveIds);
 
         // assert
         assertEq(lAmounts[2], lAmtOut);
         assertGt(lAmounts[0], lAmtOut);
+    }
+
+    function testGetAmountsIn_MixedCurves() public
+    {
+        // arrange
+        testGetAmountsIn_CP();
+        uint256 lAmtOut = 39e18;
+
+        address[] memory lPath = new address[](3);
+        lPath[0] = address(_tokenA);
+        lPath[1] = address(_tokenB);
+        lPath[2] = address(_tokenC);
+        uint256[] memory lCurveIds = new uint256[](2);
+        lCurveIds[0] = 1;
+        lCurveIds[1] = 0;
+
+        // act
+        uint256[] memory lAmounts = ReservoirLibrary.getAmountsIn(address(_factory), lAmtOut, lPath, lCurveIds);
+
+        // assert
+        assertEq(lAmounts[0], 64389168304435401779);
+        assertEq(lAmounts[1], 64126806649456566421);
+        assertEq(lAmounts[2], lAmtOut);
     }
 }
