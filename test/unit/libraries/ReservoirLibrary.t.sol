@@ -60,8 +60,7 @@ contract ReservoirLibraryTest is BaseTest
         uint64 lA = ReservoirLibrary.getAmplificationCoefficient(address(_stablePair));
 
         // act
-        uint256 lAmountOut
-        = ReservoirLibrary.getAmountOutStable(
+        uint256 lAmountOut = ReservoirLibrary.getAmountOutStable(
             lAmountIn,
             lReserve0,
             lReserve1,

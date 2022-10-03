@@ -183,6 +183,7 @@ library ReservoirLibrary {
             }
             else if (aCurveIds[i] == 1) {
                 ExtraData memory lData = ExtraData(
+                    // PERF: Investigate avoiding all these external calls for precision & amplification
                     uint64(getPrecisionMultiplier(aPath[i])),
                     uint64(getPrecisionMultiplier(aPath[i + 1])),
                     uint64(getAmplificationCoefficient(pairFor(aFactory, aPath[i], aPath[i + 1], 1)))
@@ -212,6 +213,7 @@ library ReservoirLibrary {
             }
             else if (aCurveIds[i - 1] == 1) {
                 ExtraData memory lData = ExtraData(
+                    // PERF: Investigate avoiding all these external calls for precision & amplification
                     uint64(getPrecisionMultiplier(aPath[i - 1])),
                     uint64(getPrecisionMultiplier(aPath[i])),
                     uint64(getAmplificationCoefficient(pairFor(aFactory, aPath[i], aPath[i - 1], 1)))

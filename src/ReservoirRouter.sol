@@ -38,7 +38,6 @@ contract ReservoirRouter is
         uint aAmountBMin
     ) private returns (uint rAmountA, uint rAmountB, address rPair) {
         rPair = factory.getPair(aTokenA, aTokenB, aCurveId);
-
         if (rPair == address(0)) {
             rPair = factory.createPair(aTokenA, aTokenB, aCurveId);
         }
@@ -46,18 +45,17 @@ contract ReservoirRouter is
         (uint256 lReserveA, uint256 lReserveB) = ReservoirLibrary.getReserves(address(factory), aTokenA, aTokenB, aCurveId);
         if (lReserveA == 0 && lReserveB == 0) {
             (rAmountA, rAmountB) = (aAmountADesired, aAmountBDesired);
+            return (rAmountA, rAmountB, rPair);
         }
-        else {
-            uint lAmountBOptimal = ReservoirLibrary.quote(aAmountADesired, lReserveA, lReserveB);
-            if (lAmountBOptimal <= aAmountBDesired) {
-                require(lAmountBOptimal >= aAmountBMin, "RR: INSUFFICIENT_B_AMOUNT");
-                (rAmountA, rAmountB) = (aAmountADesired, lAmountBOptimal);
-            } else {
-                uint lAmountAOptimal = ReservoirLibrary.quote(aAmountBDesired, lReserveB, lReserveA);
-                assert(lAmountAOptimal <= aAmountADesired);
-                require(lAmountAOptimal >= aAmountAMin, "RR: INSUFFICIENT_A_AMOUNT");
-                (rAmountA, rAmountB) = (lAmountAOptimal, aAmountBDesired);
-            }
+        uint lAmountBOptimal = ReservoirLibrary.quote(aAmountADesired, lReserveA, lReserveB);
+        if (lAmountBOptimal <= aAmountBDesired) {
+            require(lAmountBOptimal >= aAmountBMin, "RR: INSUFFICIENT_B_AMOUNT");
+            (rAmountA, rAmountB) = (aAmountADesired, lAmountBOptimal);
+        } else {
+            uint lAmountAOptimal = ReservoirLibrary.quote(aAmountBDesired, lReserveB, lReserveA);
+            assert(lAmountAOptimal <= aAmountADesired);
+            require(lAmountAOptimal >= aAmountAMin, "RR: INSUFFICIENT_A_AMOUNT");
+            (rAmountA, rAmountB) = (lAmountAOptimal, aAmountBDesired);
         }
     }
 
@@ -102,11 +100,15 @@ contract ReservoirRouter is
     }
 
     /// @dev requires the initial amount to have already been sent to the first pair
-    function _swapExactForVariable(uint256 aAmountIn, address[] memory aPath, uint256[] memory aCurveIds, address aTo)
-        internal returns (uint256 rFinalAmount) {
-        require(aAmountIn <= uint256(type(int256).max), "RR: CAST_WOULD_OVERFLOW");
+    function _swapExactForVariable(
+        uint256 aAmountIn,
+        address[] memory aPath,
+        uint256[] memory aCurveIds,
+        address aTo
+    ) private returns (uint256 rFinalAmount) {
+        require(aAmountIn <= type(uint112).max, "RR: CAST_WOULD_OVERFLOW");
         int256 lAmount = int256(aAmountIn);
-        for (uint i; i < aPath.length - 1; ) {
+        for (uint i = 0; i < aPath.length - 1; ) {
             (address lInput, address lOutput) = (aPath[i], aPath[i + 1]);
             (address lToken0,) = ReservoirLibrary.sortTokens(lInput, lOutput);
             address lTo = i < aPath.length - 2
@@ -137,10 +139,16 @@ contract ReservoirRouter is
     }
 
     /// @dev requires the initial amount to have already been sent to the first pair
-    function _swapVariableForExact(uint256[] memory aAmounts, address[] memory aPath, uint256[] memory aCurveIds, address aTo) internal {
-        for (uint i; i < aPath.length - 1; ) {
+    function _swapVariableForExact(
+        uint256[] memory aAmounts,
+        address[] memory aPath,
+        uint256[] memory aCurveIds,
+        address aTo
+    ) private {
+        for (uint i = 0; i < aPath.length - 1; ) {
             (address lInput, address lOutput) = (aPath[i], aPath[i + 1]);
             (address lToken0,) = ReservoirLibrary.sortTokens(lInput, lOutput);
+            // PERF: Can avoid branching on every iteration by moving the last step outside of the for loop
             address lTo = i < aPath.length - 2
                 ? ReservoirLibrary.pairFor(address(factory), lOutput, aPath[i + 2], aCurveIds[i + 1])
                 : aTo;
@@ -291,7 +299,6 @@ contract ReservoirRouter is
         uint256 aLiq
     ) external view returns (uint256 rAmountA, uint256 rAmountB) {
         address lPair = factory.getPair(aTokenA, aTokenB, aCurveId);
-
         if (lPair == address(0)) {
             return (0,0);
         }
