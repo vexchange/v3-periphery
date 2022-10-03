@@ -116,10 +116,9 @@ contract ReservoirRouter is
                 : aTo;
             lAmount = lInput == lToken0 ? int256(lAmount) : -int256(lAmount);
 
-            uint256 lAmtOut = IReservoirPair(ReservoirLibrary.pairFor(address(factory), lInput, lOutput, aCurveIds[i])).swap(
+            lAmount = int256(IReservoirPair(ReservoirLibrary.pairFor(address(factory), lInput, lOutput, aCurveIds[i])).swap(
                 lAmount, true, lTo, new bytes(0)
-            );
-            lAmount = int256(lAmtOut);
+            ));
             unchecked { i += 1; }
         }
         // lAmount is guaranteed to be positive at this point
