@@ -31,12 +31,12 @@ contract ReservoirRouter is
     function _addLiquidity(
         address aTokenA,
         address aTokenB,
-        uint aCurveId,
-        uint aAmountADesired,
-        uint aAmountBDesired,
-        uint aAmountAMin,
-        uint aAmountBMin
-    ) private returns (uint rAmountA, uint rAmountB, address rPair) {
+        uint256 aCurveId,
+        uint256 aAmountADesired,
+        uint256 aAmountBDesired,
+        uint256 aAmountAMin,
+        uint256 aAmountBMin
+    ) private returns (uint256 rAmountA, uint256 rAmountB, address rPair) {
         rPair = factory.getPair(aTokenA, aTokenB, aCurveId);
         if (rPair == address(0)) {
             rPair = factory.createPair(aTokenA, aTokenB, aCurveId);
@@ -47,12 +47,12 @@ contract ReservoirRouter is
             (rAmountA, rAmountB) = (aAmountADesired, aAmountBDesired);
             return (rAmountA, rAmountB, rPair);
         }
-        uint lAmountBOptimal = ReservoirLibrary.quote(aAmountADesired, lReserveA, lReserveB);
+        uint256 lAmountBOptimal = ReservoirLibrary.quote(aAmountADesired, lReserveA, lReserveB);
         if (lAmountBOptimal <= aAmountBDesired) {
             require(lAmountBOptimal >= aAmountBMin, "RR: INSUFFICIENT_B_AMOUNT");
             (rAmountA, rAmountB) = (aAmountADesired, lAmountBOptimal);
         } else {
-            uint lAmountAOptimal = ReservoirLibrary.quote(aAmountBDesired, lReserveB, lReserveA);
+            uint256 lAmountAOptimal = ReservoirLibrary.quote(aAmountBDesired, lReserveB, lReserveA);
             assert(lAmountAOptimal <= aAmountADesired);
             require(lAmountAOptimal >= aAmountAMin, "RR: INSUFFICIENT_A_AMOUNT");
             (rAmountA, rAmountB) = (lAmountAOptimal, aAmountBDesired);
@@ -63,10 +63,10 @@ contract ReservoirRouter is
         address aTokenA,
         address aTokenB,
         uint256 aCurveId,
-        uint aAmountADesired,
-        uint aAmountBDesired,
-        uint aAmountAMin,
-        uint aAmountBMin,
+        uint256 aAmountADesired,
+        uint256 aAmountBDesired,
+        uint256 aAmountAMin,
+        uint256 aAmountBMin,
         address aTo
     ) external payable returns (uint256 rAmountA, uint256 rAmountB, uint256 rLiq) {
         address lPair;
@@ -90,7 +90,7 @@ contract ReservoirRouter is
         require(aTo != address(0), "RR: TO_ZERO_ADDRESS");
         address lPair = ReservoirLibrary.pairFor(address(factory), aTokenA, aTokenB, aCurveId);
         IReservoirPair(lPair).transferFrom(msg.sender, lPair, aLiq);
-        (uint lAmount0, uint lAmount1) = IReservoirPair(lPair).burn(aTo);
+        (uint256 lAmount0, uint256 lAmount1) = IReservoirPair(lPair).burn(aTo);
 
         (address lToken0,) = ReservoirLibrary.sortTokens(aTokenA, aTokenB);
         (rAmountA, rAmountB) = aTokenA == lToken0 ? (lAmount0, lAmount1) : (lAmount1, lAmount0);
@@ -233,10 +233,10 @@ contract ReservoirRouter is
         uint256 aAmountBDesired
     ) external view returns (uint256 rAmountA, uint256 rAmountB, uint256 rLiq) {
         address lPair = factory.getPair(aTokenA, aTokenB, aCurveId);
-        (uint lReserveA, uint lReserveB) = (0,0);
-        uint lTokenAPrecisionMultiplier = uint256(10) ** (18 - ERC20(aTokenA).decimals());
-        uint lTokenBPrecisionMultiplier = uint256(10) ** (18 - ERC20(aTokenB).decimals());
-        uint lTotalSupply = 0;
+        (uint256 lReserveA, uint256 lReserveB) = (0,0);
+        uint256 lTokenAPrecisionMultiplier = uint256(10) ** (18 - ERC20(aTokenA).decimals());
+        uint256 lTokenBPrecisionMultiplier = uint256(10) ** (18 - ERC20(aTokenB).decimals());
+        uint256 lTotalSupply = 0;
 
         if (lPair != address(0)) {
             lTotalSupply = IReservoirPair(lPair).totalSupply();
@@ -260,12 +260,12 @@ contract ReservoirRouter is
             }
         }
         else {
-            uint lAmountBOptimal = ReservoirLibrary.quote(aAmountADesired, lReserveA, lReserveB);
+            uint256 lAmountBOptimal = ReservoirLibrary.quote(aAmountADesired, lReserveA, lReserveB);
             if (lAmountBOptimal <= aAmountBDesired) {
                 (rAmountA, rAmountB) = (aAmountADesired, lAmountBOptimal);
             }
             else {
-                uint lAmountAOptimal = ReservoirLibrary.quote(aAmountBDesired, lReserveB, lReserveA);
+                uint256 lAmountAOptimal = ReservoirLibrary.quote(aAmountBDesired, lReserveB, lReserveA);
                 (rAmountA, rAmountB) = (lAmountAOptimal, aAmountBDesired);
             }
 
