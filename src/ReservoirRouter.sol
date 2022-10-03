@@ -135,7 +135,7 @@ contract ReservoirRouter is
     ) external payable returns (uint256 rAmountOut) {
         _pay(aPath[0], msg.sender, ReservoirLibrary.pairFor(address(factory), aPath[0], aPath[1], aCurveIds[0]), aAmountIn);
         rAmountOut = _swapExactForVariable(aAmountIn, aPath, aCurveIds, aTo);
-        require(rAmountOut >= aAmountOutMin, "RL: INSUFFICIENT_OUTPUT_AMOUNT");
+        require(rAmountOut >= aAmountOutMin, "RR: INSUFFICIENT_OUTPUT_AMOUNT");
     }
 
     /// @dev requires the initial amount to have already been sent to the first pair
@@ -171,7 +171,7 @@ contract ReservoirRouter is
         address aTo
     ) external payable returns (uint256[] memory rAmounts) {
         rAmounts = ReservoirLibrary.getAmountsIn(address(factory), aAmountOut, aPath, aCurveIds);
-        require(rAmounts[0] <= aAmountInMax, "RL: EXCESSIVE_INPUT_AMOUNT");
+        require(rAmounts[0] <= aAmountInMax, "RR: EXCESSIVE_INPUT_AMOUNT");
 
         _pay(aPath[0], msg.sender, ReservoirLibrary.pairFor(address(factory), aPath[0], aPath[1], aCurveIds[0]), rAmounts[0]);
         _swapVariableForExact(rAmounts, aPath, aCurveIds, aTo);
