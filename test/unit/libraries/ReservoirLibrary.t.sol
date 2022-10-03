@@ -8,23 +8,27 @@ import { ReservoirLibrary } from "src/libraries/ReservoirLibrary.sol";
 
 contract ReservoirLibraryTest is BaseTest
 {
-    function testGetAmountOut_ErrorChecking(uint256 aAmountIn) public
+    function testGetAmountOut_InsufficientLiquidity(uint256 aAmountIn) public
     {
         // assume
         uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max);
 
+        // act & assert
+        vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
+        ReservoirLibrary.getAmountOutStable(lAmountIn, 0, 0, 0, ExtraData(0,0,0));
+
+        vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
+        ReservoirLibrary.getAmountOutConstantProduct(lAmountIn, 0, 0, 0);
+    }
+
+    function testGetAmountOut_InsufficientInputAmount() public
+    {
         // act & revert
         vm.expectRevert("RL: INSUFFICIENT_INPUT_AMOUNT");
         ReservoirLibrary.getAmountOutStable(0, 10, 10, 30, ExtraData(0,0,0));
 
         vm.expectRevert("RL: INSUFFICIENT_INPUT_AMOUNT");
         ReservoirLibrary.getAmountOutConstantProduct(0, 10, 10, 30);
-
-        vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
-        ReservoirLibrary.getAmountOutStable(lAmountIn, 0, 0, 0, ExtraData(0,0,0));
-
-        vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
-        ReservoirLibrary.getAmountOutConstantProduct(lAmountIn, 0, 0, 0);
     }
 
     function testGetAmountOutConstantProduct(uint256 aAmountIn) public
@@ -74,23 +78,28 @@ contract ReservoirLibraryTest is BaseTest
         assertEq(lAmountOut, lActualAmountOut);
     }
 
-    function testGetAmountIn_ErrorChecking(uint256 aCurveId, uint256 aAmountOut) public
+    function testGetAmountIn_InsufficientLiquidity(uint256 aAmountOut) public
     {
         // assume
         uint256 aAmountOut = bound(aAmountOut, 1, type(uint112).max);
 
+        // act & assert
+        vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
+        ReservoirLibrary.getAmountInConstantProduct(aAmountOut, 0, 0, 0);
+
+        vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
+        ReservoirLibrary.getAmountInStable(aAmountOut, 0, 0, 0, ExtraData(0,0,0));
+
+    }
+
+    function testGetAmountIn_InsufficientOutputAmount() public
+    {
         // act & revert
         vm.expectRevert("RL: INSUFFICIENT_OUTPUT_AMOUNT");
         ReservoirLibrary.getAmountInConstantProduct(0, 10, 10, 30);
 
         vm.expectRevert("RL: INSUFFICIENT_OUTPUT_AMOUNT");
         ReservoirLibrary.getAmountInStable(0, 10, 10, 30, ExtraData(0,0,0));
-
-        vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
-        ReservoirLibrary.getAmountInConstantProduct(aAmountOut, 0, 0, 0);
-
-        vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
-        ReservoirLibrary.getAmountInStable(aAmountOut, 0, 0, 0, ExtraData(0,0,0));
     }
 
     function testGetAmountInConstantProduct(uint256 aAmountOut) public
