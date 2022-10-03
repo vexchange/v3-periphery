@@ -4,25 +4,25 @@ pragma solidity >=0.7.5;
 /// @title Periphery Payments
 /// @notice Functions to ease deposits and withdrawals of ETH
 interface IPeripheryPayments {
-    /// @notice Unwraps the contract's WETH balance and sends it to recipient as ETH.
-    /// @dev The amountMinimum parameter prevents malicious contracts from stealing WETH from users.
-    /// @param amountMinimum The minimum amount of WETH to unwrap
-    /// @param recipient The address receiving ETH
-    function unwrapWETH(uint256 amountMinimum, address recipient) external payable;
+    /// @notice Unwraps the contract's WETH balance and sends it to aRecipient as ETH.
+    /// @dev The aAmountMinimum parameter prevents malicious contracts from stealing WETH from users.
+    /// @param aAmountMinimum The minimum amount of WETH to unwrap
+    /// @param aRecipient The address receiving ETH
+    function unwrapWETH(uint256 aAmountMinimum, address aRecipient) external payable;
 
     /// @notice Refunds any ETH balance held by this contract to the `msg.sender`
     /// @dev Useful for bundling with mint or increase liquidity that uses ether, or exact output swaps
     /// that use ether for the input amount
     function refundETH() external payable;
 
-    /// @notice Transfers the full amount of a token held by this contract to recipient
-    /// @dev The amountMinimum parameter prevents malicious contracts from stealing the token from users
-    /// @param token The contract address of the token which will be transferred to `recipient`
-    /// @param amountMinimum The minimum amount of token required for a transfer
-    /// @param recipient The destination address of the token
+    /// @notice Transfers the full amount of a token held by this contract to aRecipient
+    /// @dev The aAmountMinimum parameter prevents malicious contracts from stealing the token from users
+    /// @param aToken The contract address of the aToken which will be transferred to `aRecipient`
+    /// @param aAmountMinimum The minimum amount of aToken required for a transfer
+    /// @param aRecipient The destination address of the aToken
     function sweepToken(
-        address token,
-        uint256 amountMinimum,
-        address recipient
+        address aToken,
+        uint256 aAmountMinimum,
+        address aRecipient
     ) external payable;
 }

@@ -13,8 +13,8 @@ abstract contract PeripheryImmutableState is IPeripheryImmutableState {
     /// @inheritdoc IPeripheryImmutableState
     IWETH public immutable override WETH;
 
-    constructor(address _factory, address _WETH) {
-        factory = IGenericFactory(_factory);
-        WETH = IWETH(_WETH);
+    constructor(address aFactory, address aWETH) {
+        factory = IGenericFactory(aFactory);
+        WETH = IWETH(aWETH);
     }
 }

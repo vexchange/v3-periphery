@@ -12,31 +12,31 @@ import "src/abstract/PeripheryImmutableState.sol";
 
 abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableState {
     receive() external payable {
-        require(msg.sender == address(WETH), "Not WETH");
+        require(msg.sender == address(WETH), "PP: NOT_WETH");
     }
 
     /// @inheritdoc IPeripheryPayments
-    function unwrapWETH(uint256 amountMinimum, address recipient) public payable override {
-        uint256 balanceWETH = IWETH(WETH).balanceOf(address(this));
-        require(balanceWETH >= amountMinimum, "Insufficient WETH");
+    function unwrapWETH(uint256 aAmountMinimum, address aRecipient) public payable override {
+        uint256 lBalanceWETH = IWETH(WETH).balanceOf(address(this));
+        require(lBalanceWETH >= aAmountMinimum, "PP: INSUFFICIENT_WETH");
 
-        if (balanceWETH > 0) {
-            IWETH(WETH).withdraw(balanceWETH);
-            TransferHelper.safeTransferETH(recipient, balanceWETH);
+        if (lBalanceWETH > 0) {
+            IWETH(WETH).withdraw(lBalanceWETH);
+            TransferHelper.safeTransferETH(aRecipient, lBalanceWETH);
         }
     }
 
     /// @inheritdoc IPeripheryPayments
     function sweepToken(
-        address token,
-        uint256 amountMinimum,
-        address recipient
+        address aToken,
+        uint256 aAmountMinimum,
+        address aRecipient
     ) public payable override {
-        uint256 balanceToken = IERC20(token).balanceOf(address(this));
-        require(balanceToken >= amountMinimum, "Insufficient token");
+        uint256 lBalanceToken = IERC20(aToken).balanceOf(address(this));
+        require(lBalanceToken >= aAmountMinimum, "PP: INSUFFICIENT_TOKEN");
 
-        if (balanceToken > 0) {
-            TransferHelper.safeTransfer(token, recipient, balanceToken);
+        if (lBalanceToken > 0) {
+            TransferHelper.safeTransfer(aToken, aRecipient, lBalanceToken);
         }
     }
 
@@ -45,23 +45,23 @@ abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableSta
         if (address(this).balance > 0) TransferHelper.safeTransferETH(msg.sender, address(this).balance);
     }
 
-    /// @param token The token to pay
-    /// @param payer The entity that must pay
-    /// @param recipient The entity that will receive payment
-    /// @param value The amount to pay
+    /// @param aToken The token to pay
+    /// @param aPayer The entity that must pay
+    /// @param aRecipient The entity that will receive payment
+    /// @param aValue The amount to pay
     function _pay(
-        address token,
-        address payer,
-        address recipient,
-        uint256 value
+        address aToken,
+        address aPayer,
+        address aRecipient,
+        uint256 aValue
     ) internal {
-        if (token == address(WETH) && address(this).balance >= value) {
+        if (aToken == address(WETH) && address(this).balance >= aValue) {
             // pay with WETH
-            IWETH(WETH).deposit{value: value}(); // wrap only what is needed to pay
-            IWETH(WETH).transfer(recipient, value);
+            IWETH(WETH).deposit{value: aValue}(); // wrap only what is needed to pay
+            IWETH(WETH).transfer(aRecipient, aValue);
         } else {
             // pull payment
-            TransferHelper.safeTransferFrom(token, payer, recipient, value);
+            TransferHelper.safeTransferFrom(aToken, aPayer, aRecipient, aValue);
         }
     }
 }

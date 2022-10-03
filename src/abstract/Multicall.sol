@@ -8,22 +8,22 @@ import { IMulticall } from "src/interfaces/IMulticall.sol";
 /// @author Modified from Uniswap (https://github.com/Uniswap/v3-periphery/blob/main/contracts/base/Multicall.sol)
 /// License-Identifier: GPL-2.0-or-later
 abstract contract Multicall is IMulticall {
-    function multicall(bytes[] calldata data) external payable returns (bytes[] memory results) {
-        results = new bytes[](data.length);
+    function multicall(bytes[] calldata aData) external payable returns (bytes[] memory rResults) {
+        rResults = new bytes[](aData.length);
 
-        for (uint256 i; i < data.length;) {
-            (bool success, bytes memory result) = address(this).delegatecall(data[i]);
+        for (uint256 i; i < aData.length;) {
+            (bool lSuccess, bytes memory lResult) = address(this).delegatecall(aData[i]);
 
-            if (!success) {
+            if (!lSuccess) {
                 // Next 5 lines from https://ethereum.stackexchange.com/a/83577
-                if (result.length < 68) revert();
+                if (lResult.length < 68) revert();
                 assembly {
-                    result := add(result, 0x04)
+                    lResult := add(lResult, 0x04)
                 }
-                revert(abi.decode(result, (string)));
+                revert(abi.decode(lResult, (string)));
             }
 
-            results[i] = result;
+            rResults[i] = lResult;
 
         // cannot realistically overflow on human timescales
         unchecked {
