@@ -76,7 +76,9 @@ library ReservoirLibrary {
     function quote(uint aAmountA, uint aReserveA, uint aReserveB) internal pure returns (uint rAmountB) {
         require(aAmountA > 0, "RL: INSUFFICIENT_AMOUNT");
         require(aReserveA > 0 && aReserveB > 0, "RL: INSUFFICIENT_LIQUIDITY");
-        rAmountB = aAmountA * aReserveB / aReserveA;
+        unchecked {
+            rAmountB = aAmountA * aReserveB / aReserveA;
+        }
     }
 
     function computeStableLiquidity(
