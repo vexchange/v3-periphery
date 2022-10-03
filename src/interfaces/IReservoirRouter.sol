@@ -16,10 +16,10 @@ interface IReservoirRouter {
         address aTokenA,
         address aTokenB,
         uint256 aCurveId,
-        uint aAmountADesired,
-        uint aAmountBDesired,
-        uint aAmountAMin,
-        uint aAmountBMin,
+        uint256 aAmountADesired,
+        uint256 aAmountBDesired,
+        uint256 aAmountAMin,
+        uint256 aAmountBMin,
         address aTo
     ) external payable returns (uint256 rAmountA, uint256 rAmountB, uint256 rLiq);
 
