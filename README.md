@@ -47,7 +47,7 @@ Contribute in these ways:
 
 - If you find an issue and would like to submit a fix for said issue, follow
   these steps:
-    - Start by forking the V3-Core repository to your local environment.
+  - Start by forking the V3-Core repository to your local environment.
     - Make the changes you find necessary to your local repository.
     - Submit your [pull request.](https://github.com/vexchange/v3-periphery/compare)
 
