@@ -23,10 +23,10 @@ contract ReservoirRouter is
     PredicateHelper,
     Multicall
 {
-    uint256 constant MINIMUM_LIQUIDITY = 1e3;
+    uint256 public constant MINIMUM_LIQUIDITY = 1e3;
 
     constructor (address aFactory, address aWETH) PeripheryImmutableState(aFactory, aWETH)
-    {}
+    {} // solhint-disable-line no-empty-blocks
 
     function _addLiquidity(
         address aTokenA,

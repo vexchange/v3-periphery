@@ -11,7 +11,7 @@ abstract contract PeripheryImmutableState is IPeripheryImmutableState {
     /// @inheritdoc IPeripheryImmutableState
     IGenericFactory public immutable override factory;
     /// @inheritdoc IPeripheryImmutableState
-    IWETH public immutable override WETH;
+    IWETH public immutable override WETH; // solhint-disable-line var-name-mixedcase
 
     constructor(address aFactory, address aWETH) {
         factory = IGenericFactory(aFactory);

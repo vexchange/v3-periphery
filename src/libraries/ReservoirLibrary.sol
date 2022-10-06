@@ -86,7 +86,7 @@ library ReservoirLibrary {
         uint256 aReserve1,
         uint256 aToken0PrecisionMultiplier,
         uint256 aToken1PrecisionMultiplier,
-        uint256 aN_A
+        uint256 aN_A //solhint-disable-line var-name-mixedcase
     ) internal pure returns (uint256) {
         return StableMath._computeLiquidityFromAdjustedBalances(
             aReserve0 * aToken0PrecisionMultiplier,

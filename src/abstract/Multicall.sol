@@ -12,11 +12,12 @@ abstract contract Multicall is IMulticall {
         rResults = new bytes[](aData.length);
 
         for (uint256 i; i < aData.length;) {
+            // solhint-disable-next-line avoid-low-level-calls
             (bool lSuccess, bytes memory lResult) = address(this).delegatecall(aData[i]);
 
             if (!lSuccess) {
                 // Next 5 lines from https://ethereum.stackexchange.com/a/83577
-                if (lResult.length < 68) revert();
+                if (lResult.length < 68) revert(); // solhint-disable-line reason-string
                 assembly {
                     lResult := add(lResult, 0x04)
                 }

@@ -11,5 +11,6 @@ interface IPeripheryImmutableState {
     function factory() external view returns (IGenericFactory);
 
     /// @return Returns the address of WETH
+    // solhint-disable-next-line func-name-mixedcase
     function WETH() external view returns (IWETH);
 }

@@ -21,7 +21,7 @@ contract ReservoirRouterTest is BaseTest
     bytes[]         private _data;
 
     // required to receive ETH refunds from the router
-    receive() external payable {}
+    receive() external payable {} // solhint-disable-line no-empty-blocks
 
     function testAddLiquidity(uint256 aTokenAMintAmt, uint256 aTokenBMintAmt) public
     {
@@ -87,8 +87,9 @@ contract ReservoirRouterTest is BaseTest
         assertEq(_tokenC.allowance(_bob, address(_router)), type(uint256).max);
 
         // act
-        (uint256 lAmountA, uint256 lAmountB, uint256 lLiquidity)
-            = _router.addLiquidity(address(_tokenA), address(_tokenC), 0, lTokenAMintAmt, lTokenCMintAmt, 500e18, 500e18, _bob);
+        (, , uint256 lLiquidity) = _router.addLiquidity(
+            address(_tokenA), address(_tokenC), 0, lTokenAMintAmt, lTokenCMintAmt, 500e18, 500e18, _bob
+        );
 
         // assert
         ReservoirPair lPair = ReservoirPair(_factory.getPair(address(_tokenC), address(_tokenA), 0));
@@ -134,7 +135,7 @@ contract ReservoirRouterTest is BaseTest
 
         // assert
         ReservoirPair lPair = ReservoirPair(_factory.getPair(address(_weth), address(_tokenA), 0));
-        (uint256 lAmountA, uint256 lAmountB, uint256 lLiquidity) = abi.decode(lResult[0], (uint256, uint256, uint256));
+        (, , uint256 lLiquidity) = abi.decode(lResult[0], (uint256, uint256, uint256));
         assertEq(lLiquidity, FixedPointMathLib.sqrt(lTokenAMintAmt * lEthMintAmt) - lPair.MINIMUM_LIQUIDITY());
         assertEq(lPair.balanceOf(_bob), lLiquidity);
         assertEq(_tokenA.balanceOf(_bob), 0);
@@ -216,7 +217,7 @@ contract ReservoirRouterTest is BaseTest
             )
         ));
 
-        bytes[] memory lResult = _router.multicall(_data);
+        _router.multicall(_data);
 
         // assert
         assertEq(lPair.balanceOf(_bob), 0);
@@ -267,6 +268,7 @@ contract ReservoirRouterTest is BaseTest
 
         // assert
         assertTrue(MathUtils.within1(lAmountA, _tokenA.balanceOf(_alice)));
+        assertTrue(MathUtils.within1(lAmountB, _tokenB.balanceOf(_alice)));
     }
 
     function testCheckDeadline(uint256 aDeadline) public
@@ -583,11 +585,12 @@ contract ReservoirRouterTest is BaseTest
         ));
 
         // send way too much ETH to the router
-        bytes[] memory lResult = _router.multicall{ value: address(this).balance }(_data);
+        _router.multicall{ value: address(this).balance }(_data);
 
         // assert
         assertEq(address(this).balance, lEtherToMint - lAmounts[0]);
         assertEq(address(_router).balance, 0);
+        assertEq(_tokenB.balanceOf(address(this)), lAmtOut);
     }
 
     function testSwapVariableForExact_NativeOut() public
@@ -694,7 +697,7 @@ contract ReservoirRouterTest is BaseTest
         uint256 lReserveOut = bound(aReserveOut, lReserveIn / 1e3, Math.min(lReserveIn * 1e3, type(uint112).max));
         uint256 lAmtIn = bound(aAmtIn, 1e6, type(uint112).max);
         uint256 lSwapFee = bound(aSwapFee, 0, 200);
-        uint256 lAmpCoefficient = bound(aSwapFee, 100, 1000000);
+        uint256 lAmpCoefficient = bound(aAmpCoeff, 100, 1000000);
 
         ExtraData memory lData = ExtraData(1, 1, uint64(lAmpCoefficient));
 
