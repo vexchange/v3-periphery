@@ -316,7 +316,7 @@ contract ReservoirRouterTest is BaseTest
         uint256[] memory lCurveIds = new uint256[](2);
         lCurveIds[0] = 0;
         lCurveIds[1] = 0;
-        uint256[] memory lAmounts = _router.getAmountsOut(lAmtIn, lPath, lCurveIds);
+        uint256[] memory lAmounts = ReservoirLibrary.getAmountsOut(address(_factory), lAmtIn, lPath, lCurveIds);
 
         uint256 lAmountOutMin = lAmounts[lAmounts.length - 1] * 99 / 100; // 1% slippage
 
@@ -350,7 +350,7 @@ contract ReservoirRouterTest is BaseTest
         uint256[] memory lCurveIds = new uint256[](2);
         lCurveIds[0] = 0;
         lCurveIds[1] = 0;
-        uint256[] memory lAmounts = _router.getAmountsOut(lAmtIn, lPath, lCurveIds);
+        uint256[] memory lAmounts = ReservoirLibrary.getAmountsOut(address(_factory), lAmtIn, lPath, lCurveIds);
 
         uint256 lAmountOutMin = lAmounts[lAmounts.length - 1] * 99 / 100; // 1% slippage
 
@@ -384,7 +384,7 @@ contract ReservoirRouterTest is BaseTest
         uint256[] memory lCurveIds = new uint256[](2);
         lCurveIds[0] = 0;
         lCurveIds[1] = 0;
-        uint256[] memory lAmounts = _router.getAmountsOut(lAmtIn, lPath, lCurveIds);
+        uint256[] memory lAmounts = ReservoirLibrary.getAmountsOut(address(_factory), lAmtIn, lPath, lCurveIds);
         uint256 lAmountOutMin = lAmounts[lAmounts.length - 1] * 99 / 100; // 1% slippage
 
         // act
@@ -423,7 +423,7 @@ contract ReservoirRouterTest is BaseTest
         uint256[] memory lCurveIds = new uint256[](2);
         lCurveIds[0] = 0;
         lCurveIds[1] = 0;
-        uint256[] memory lAmounts = _router.getAmountsOut(lAmtIn, lPath, lCurveIds);
+        uint256[] memory lAmounts = ReservoirLibrary.getAmountsOut(address(_factory), lAmtIn, lPath, lCurveIds);
         uint256 lAmountOutMin = lAmounts[lAmounts.length - 1] * 99 / 100; // 1% slippage
 
         // act
@@ -462,7 +462,7 @@ contract ReservoirRouterTest is BaseTest
         uint256[] memory lCurveIds = new uint256[](2);
         lCurveIds[0] = 1;
         lCurveIds[1] = 0;
-        uint256[] memory lAmounts = _router.getAmountsOut(lAmtIn, lPath, lCurveIds);
+        uint256[] memory lAmounts = ReservoirLibrary.getAmountsOut(address(_factory), lAmtIn, lPath, lCurveIds);
         uint256 lAmountOutMin = lAmounts[lAmounts.length - 1] * 99 / 100; // 1% slippage
 
         _tokenB.mint(address(this), lAmtIn);
@@ -500,7 +500,7 @@ contract ReservoirRouterTest is BaseTest
 
         uint256 lAmtOut = bound(aAmtOut, 1e3, INITIAL_MINT_AMOUNT / 2);
 
-        uint256[] memory lAmounts = _router.getAmountsIn(lAmtOut, lPath, lCurveIds);
+        uint256[] memory lAmounts = ReservoirLibrary.getAmountsIn(address(_factory), lAmtOut, lPath, lCurveIds);
 
         uint256 lAmountInMax = lAmounts[0] * 101 / 100; // 1% slippage
 
@@ -532,7 +532,7 @@ contract ReservoirRouterTest is BaseTest
         lCurveIds[0] = 0;
         lCurveIds[1] = 0;
 
-        uint256[] memory lAmounts = _router.getAmountsIn(lAmtOut, lPath, lCurveIds);
+        uint256[] memory lAmounts = ReservoirLibrary.getAmountsIn(address(_factory), lAmtOut, lPath, lCurveIds);
         uint256 lAmountInMax = lAmounts[0] * 101 / 100; // 1% slippage
 
         _data.push(abi.encodeCall(
@@ -570,7 +570,7 @@ contract ReservoirRouterTest is BaseTest
         lCurveIds[0] = 0;
         lCurveIds[1] = 0;
 
-        uint256[] memory lAmounts = _router.getAmountsIn(lAmtOut, lPath, lCurveIds);
+        uint256[] memory lAmounts = ReservoirLibrary.getAmountsIn(address(_factory), lAmtOut, lPath, lCurveIds);
         uint256 lAmountInMax = lAmounts[0] * 101 / 100; // 1% slippage
 
         _data.push(abi.encodeCall(
@@ -606,7 +606,7 @@ contract ReservoirRouterTest is BaseTest
         uint256[] memory lCurveIds = new uint256[](2);
         lCurveIds[0] = 0;
         lCurveIds[1] = 0;
-        uint256[] memory lAmounts = _router.getAmountsIn(lAmtOut, lPath, lCurveIds);
+        uint256[] memory lAmounts = ReservoirLibrary.getAmountsIn(address(_factory), lAmtOut, lPath, lCurveIds);
         uint256 lAmountInMax = lAmounts[0] * 101 / 100; // 1% slippage
         _tokenB.mint(address(this), lAmounts[0]);
         _tokenB.approve(address(_router), lAmounts[0]);
@@ -647,7 +647,7 @@ contract ReservoirRouterTest is BaseTest
         uint256[] memory lCurveIds = new uint256[](2);
         lCurveIds[0] = 0;
         lCurveIds[1] = 1;
-        uint256[] memory lAmounts = _router.getAmountsIn(lAmtOut, lPath, lCurveIds);
+        uint256[] memory lAmounts = ReservoirLibrary.getAmountsIn(address(_factory), lAmtOut, lPath, lCurveIds);
         uint256 lAmountInMax = lAmounts[lAmounts.length - 1] * 101 / 100; // 1% slippage
 
         _tokenC.mint(address(this), lAmountInMax);
