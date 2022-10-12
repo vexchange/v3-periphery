@@ -12,7 +12,7 @@ import { StablePair } from "v3-core/src/curve/stable/StablePair.sol";
 import { StableMath } from "v3-core/src/libraries/StableMath.sol";
 
 library ReservoirLibrary {
-    uint256 public constant FEE_ACCURACY  = 10_000;
+    uint256 public constant FEE_ACCURACY  = 1_000_000;
 
     // returns sorted token addresses, used to handle return values from pairs sorted in this order
     function sortTokens(address aTokenA, address aTokenB) internal pure returns (address rToken0, address rToken1) {
