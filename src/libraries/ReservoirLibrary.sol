@@ -21,28 +21,9 @@ library ReservoirLibrary {
         require(rToken0 != address(0), "RL: ZERO_ADDRESS");
     }
 
-    // calculates the CREATE2 address for a pair without making any external calls
-    function pairFor(address aFactory, address aTokenA, address aTokenB, uint256 aCurveId) internal pure returns (address rPair) {
-        (address lToken0, address lToken1) = sortTokens(aTokenA, aTokenB);
-
-        bytes memory lInitCode;
-
-        if (aCurveId == 0) {
-            lInitCode = abi.encodePacked(type(ConstantProductPair).creationCode, abi.encode(lToken0, lToken1));
-        }
-        else if (aCurveId == 1) {
-            lInitCode = abi.encodePacked(type(StablePair).creationCode, abi.encode(lToken0, lToken1));
-        }
-        else {
-            revert("RL: CURVE_DOES_NOT_EXIST");
-        }
-
-        rPair = address(uint160(uint256(keccak256(abi.encodePacked(
-            bytes1(0xff),
-            aFactory,
-            bytes32(0),
-            keccak256(lInitCode)
-        )))));
+    /// @notice queries the factory for the actual pair address
+    function pairFor(address aFactory, address aTokenA, address aTokenB, uint256 aCurveId) internal view returns (address rPair) {
+        rPair = IGenericFactory(aFactory).getPair(aTokenA, aTokenB, aCurveId);
     }
 
     function getSwapFee(address aFactory, address aTokenA, address aTokenB, uint256 aCurveId) internal view returns (uint rSwapFee) {
