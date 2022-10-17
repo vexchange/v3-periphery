@@ -102,4 +102,58 @@ contract QuoterTest is BaseTest
         // assert
         assertEq(lLibOutput, lOutput);
     }
+
+    function testGetAmountsOut(uint256 aAmtIn, uint256 aAmtB, uint256 aAmtD) public
+    {
+        // assume
+        uint256 lAmtIn = bound(aAmtIn, 1e6, type(uint112).max);
+        uint256 lAmtBToMint = bound(aAmtB, 1001, type(uint112).max / 2);
+        uint256 lAmtDToMint = bound(aAmtD, 1001, type(uint112).max / 2);
+
+        // arrange
+        ConstantProductPair lNewPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenD), 0));
+        _tokenB.mint(address(lNewPair), lAmtBToMint);
+        _tokenD.mint(address(lNewPair), lAmtDToMint);
+        lNewPair.mint(address(this));
+        address[] memory lPath = new address[](3);
+        lPath[0] = address(_tokenA);
+        lPath[1] = address(_tokenB);
+        lPath[2] = address(_tokenD);
+        uint256[] memory lCurveIds = new uint256[](2);
+        lCurveIds[0] = 1;
+        lCurveIds[1] = 0;
+
+        // act
+        uint256[] memory lLibOutput = ReservoirLibrary.getAmountsOut(address(_factory), lAmtIn, lPath, lCurveIds);
+        uint256[] memory lOutput = _quoter.getAmountsOut(lAmtIn, lPath, lCurveIds);
+
+        // assert
+        assertEq(lLibOutput, lOutput);
+    }
+
+    function testGetAmountsIn(uint256 aAmtOut) public
+    {
+        // assume
+        uint256 lAmtOut = bound(aAmtOut, 1, INITIAL_MINT_AMOUNT / 2);
+
+        // arrange
+        ConstantProductPair lNewPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenD), 0));
+        _tokenB.mint(address(lNewPair), INITIAL_MINT_AMOUNT);
+        _tokenD.mint(address(lNewPair), INITIAL_MINT_AMOUNT);
+        lNewPair.mint(address(this));
+        address[] memory lPath = new address[](3);
+        lPath[0] = address(_tokenA);
+        lPath[1] = address(_tokenB);
+        lPath[2] = address(_tokenD);
+        uint256[] memory lCurveIds = new uint256[](2);
+        lCurveIds[0] = 1;
+        lCurveIds[1] = 0;
+
+        // act
+        uint256[] memory lLibOutput = ReservoirLibrary.getAmountsIn(address(_factory), lAmtOut, lPath, lCurveIds);
+        uint256[] memory lOutput = _quoter.getAmountsIn(lAmtOut, lPath, lCurveIds);
+
+        // assert
+        assertEq(lLibOutput, lOutput);
+    }
 }
