@@ -9,7 +9,6 @@ import { Math } from "@openzeppelin/utils/math/Math.sol";
 import { MathUtils } from "v3-core/src/libraries/MathUtils.sol";
 
 import { IReservoirPair } from "v3-core/src/interfaces/IReservoirPair.sol";
-import { ExtraData } from "src/interfaces/IReservoirRouter.sol";
 import { ReservoirLibrary, IGenericFactory } from "src/libraries/ReservoirLibrary.sol";
 import { ReservoirRouter } from "src/ReservoirRouter.sol";
 
@@ -223,52 +222,6 @@ contract ReservoirRouterTest is BaseTest
         assertEq(lPair.balanceOf(_bob), 0);
         assertEq(_tokenA.balanceOf(_bob), lLiq * 5000e18 / (lLiq + lPair.MINIMUM_LIQUIDITY()));
         assertEq(_bob.balance,  5 ether + lLiq * 5 ether / (lLiq + lPair.MINIMUM_LIQUIDITY()));
-    }
-
-    function testQuoteAddLiquidity(uint256 aAmountAToAdd, uint256 aAmountBToAdd) public
-    {
-        // assume
-        uint256 lAmountAToAdd = bound(aAmountAToAdd, 1000, type(uint112).max);
-        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1000, type(uint112).max);
-
-        // act
-        (uint256 lAmountAOptimal, uint256 lAmountBOptimal, uint256 lLiq)
-            = _router.quoteAddLiquidity(address(_tokenA), address(_tokenB), 0, lAmountAToAdd, lAmountBToAdd);
-
-        // assert
-        assertEq(lAmountAOptimal, Math.min(lAmountAToAdd, lAmountBToAdd));
-        assertEq(lAmountBOptimal, lAmountAOptimal);
-        assertEq(lLiq, FixedPointMathLib.sqrt(lAmountAOptimal * lAmountBOptimal));
-    }
-
-    function testQuoteAddLiquidity_Stable(uint256 aAmountAToAdd, uint256 aAmountBToAdd) public
-    {
-        // assume
-        uint256 lAmountAToAdd = bound(aAmountAToAdd, 1000, type(uint112).max);
-        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1000, type(uint112).max);
-
-        // act
-        (uint256 lAmountAOptimal, uint256 lAmountBOptimal, uint256 lLiq)
-            = _router.quoteAddLiquidity(address(_tokenA), address(_tokenB), 1, lAmountAToAdd, lAmountBToAdd);
-
-        // assert
-        assertEq(lAmountAOptimal, Math.min(lAmountAToAdd, lAmountBToAdd));
-        assertEq(lAmountBOptimal, lAmountAOptimal);
-        assertEq(lLiq, lAmountAOptimal + lAmountBOptimal);
-    }
-
-    function testQuoteRemoveLiquidity(uint256 aLiquidity) public
-    {
-        // assume
-        uint256 lLiquidity = bound(aLiquidity, 1, _constantProductPair.balanceOf(_alice));
-
-        // act
-        (uint256 lAmountA, uint256 lAmountB) = _router.quoteRemoveLiquidity(address(_tokenA), address(_tokenB), 0, lLiquidity);
-        testRemoveLiquidity(lLiquidity);
-
-        // assert
-        assertTrue(MathUtils.within1(lAmountA, _tokenA.balanceOf(_alice)));
-        assertTrue(MathUtils.within1(lAmountB, _tokenB.balanceOf(_alice)));
     }
 
     function testCheckDeadline(uint256 aDeadline) public
@@ -668,44 +621,5 @@ contract ReservoirRouterTest is BaseTest
         uint256[] memory lActualAmounts = abi.decode(lResult[0], (uint256[]));
         assertEq(lActualAmounts, lAmounts);
         assertGt(_tokenC.balanceOf(address(this)), 0);
-    }
-
-    /*//////////////////////////////////////////////////////////////////////////
-                        DIFFERENTIAL TESTING AGAINST LIB
-    //////////////////////////////////////////////////////////////////////////*/
-
-    function testGetAmountOutConstantProduct(uint256 aAmtIn, uint256 aReserveIn, uint256 aReserveOut, uint256 aSwapFee) public
-    {
-        // assume
-        uint256 lAmtIn = bound(aAmtIn, 1, type(uint112).max);
-        uint256 lReserveIn = bound(aReserveIn, 1, type(uint112).max);
-        uint256 lReserveOut = bound(aReserveOut, 1, type(uint112).max);
-        uint256 lSwapFee = bound(aSwapFee, 0, 200); // max swap fee is 2% configured in Pair.sol
-
-        // act
-        uint256 lLibOutput = ReservoirLibrary.getAmountOutConstantProduct(lAmtIn, lReserveIn, lReserveOut, lSwapFee);
-        uint256 lOutput = _router.getAmountOut(lAmtIn, lReserveIn, lReserveOut, 0, lSwapFee, ExtraData(0,0,0));
-
-        // assert
-        assertEq(lLibOutput, lOutput);
-    }
-
-    function testGetAmountOutStable(uint256 aAmtIn, uint256 aReserveIn, uint256 aReserveOut, uint256 aSwapFee, uint256 aAmpCoeff) public
-    {
-        // assume
-        uint256 lReserveIn = bound(aReserveIn, 1e6, type(uint112).max);
-        uint256 lReserveOut = bound(aReserveOut, lReserveIn / 1e3, Math.min(lReserveIn * 1e3, type(uint112).max));
-        uint256 lAmtIn = bound(aAmtIn, 1e6, type(uint112).max);
-        uint256 lSwapFee = bound(aSwapFee, 0, 200);
-        uint256 lAmpCoefficient = bound(aAmpCoeff, 100, 1000000);
-
-        ExtraData memory lData = ExtraData(1, 1, uint64(lAmpCoefficient));
-
-        // act
-        uint256 lLibOutput = ReservoirLibrary.getAmountOutStable(lAmtIn, lReserveIn, lReserveOut, lSwapFee, lData);
-        uint256 lOutput = _router.getAmountOut(lAmtIn, lReserveIn, lReserveOut, 1, lSwapFee, lData);
-
-        // assert
-        assertEq(lLibOutput, lOutput);
     }
 }

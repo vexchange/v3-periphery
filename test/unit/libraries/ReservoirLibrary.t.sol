@@ -2,7 +2,7 @@ pragma solidity 0.8.13;
 
 import "v3-core/test/__fixtures/BaseTest.sol";
 
-import { ExtraData } from "src/interfaces/IReservoirRouter.sol";
+import { ExtraData } from "src/interfaces/IQuoter.sol";
 
 import { ReservoirLibrary } from "src/libraries/ReservoirLibrary.sol";
 
