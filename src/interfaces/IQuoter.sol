@@ -12,7 +12,7 @@ interface IQuoter {
                                 QUERY METHODS (VIEW)
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @param aExtraData for StablePair use, to leave blank for ConstantProductPair. See ReservoirLibrary
+    /// @param aExtraData for StablePair use, to leave blank for ConstantProductPair
     function getAmountOut(
         uint256 aAmountIn,
         uint256 aReserveIn,
@@ -22,7 +22,7 @@ interface IQuoter {
         ExtraData calldata aExtraData
     ) external pure returns(uint256 rAmountOut);
 
-    /// @param aExtraData for StablePair use, to leave blank for ConstantProductPair. See ReservoirLibrary
+    /// @param aExtraData for StablePair use, to leave blank for ConstantProductPair
     function getAmountIn(
         uint256 aAmountOut,
         uint256 aReserveIn,
