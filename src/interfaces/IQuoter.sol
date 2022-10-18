@@ -12,7 +12,7 @@ interface IQuoter {
                                 QUERY METHODS (VIEW)
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @param aExtraData for StablePair use, to leave blank for ConstantProductPair
+    /// @dev aExtraData for StablePair use, to leave blank for ConstantProductPair
     function getAmountOut(
         uint256 aAmountIn,
         uint256 aReserveIn,
@@ -22,7 +22,7 @@ interface IQuoter {
         ExtraData calldata aExtraData
     ) external pure returns(uint256 rAmountOut);
 
-    /// @param aExtraData for StablePair use, to leave blank for ConstantProductPair
+    /// @dev aExtraData for StablePair use, to leave blank for ConstantProductPair
     function getAmountIn(
         uint256 aAmountOut,
         uint256 aReserveIn,
@@ -32,14 +32,14 @@ interface IQuoter {
         ExtraData calldata aExtraData
     ) external pure returns(uint256 rAmountIn);
 
-    /// @param aPath array of ERC20 tokens to swap into
+    /// @dev aPath array of ERC20 tokens to swap into
     function getAmountsOut(
         uint256 aAmountIn,
         address[] calldata aPath,
         uint256[] calldata aCurveIds
     ) external view returns(uint256[] memory rAmountsOut);
 
-    /// @param aPath array of ERC20 tokens to swap into
+    /// @dev aPath array of ERC20 tokens to swap into
     function getAmountsIn(
         uint256 aAmountOut,
         address[] calldata aPath,
