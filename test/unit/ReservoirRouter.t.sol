@@ -276,7 +276,16 @@ contract ReservoirRouterTest is BaseTest
 
     function testAddLiquidity_OptimalLessThanMin() public
     {
+        // act & assert
+        vm.expectRevert("RR: INSUFFICIENT_A_AMOUNT");
+        _router.addLiquidity(
+            address(_tokenA), address(_tokenB), 1, 101e18, 99e18, 100e18, 100e18, _bob
+        );
 
+        vm.expectRevert("RR: INSUFFICIENT_B_AMOUNT");
+        _router.addLiquidity(
+            address(_tokenA), address(_tokenB), 1, 99e18, 101e18, 100e18, 100e18, _bob
+        );
     }
 
     function testRemoveLiquidity(uint256 aAmountToRemove) public
@@ -357,6 +366,21 @@ contract ReservoirRouterTest is BaseTest
         assertEq(lPair.balanceOf(_bob), 0);
         assertEq(_tokenA.balanceOf(_bob), lLiq * 5000e18 / (lLiq + lPair.MINIMUM_LIQUIDITY()));
         assertEq(_bob.balance,  5 ether + lLiq * 5 ether / (lLiq + lPair.MINIMUM_LIQUIDITY()));
+    }
+
+    function testRemoveLiquidity_ReceivedLessThanMin() public
+    {
+        // arrange
+        uint256 lAmountToBurn = 50e18;
+        vm.startPrank(_alice);
+        _stablePair.approve(address(_router), lAmountToBurn);
+
+        // act & assert
+        vm.expectRevert("RR: INSUFFICIENT_A_AMOUNT");
+        _router.removeLiquidity(address(_tokenA), address(_tokenB), 1, lAmountToBurn, lAmountToBurn / 2 + 1, 0, address(this));
+
+        vm.expectRevert("RR: INSUFFICIENT_B_AMOUNT");
+        _router.removeLiquidity(address(_tokenA), address(_tokenB), 1, lAmountToBurn, 0, lAmountToBurn / 2 + 1, address(this));
     }
 
     function testCheckDeadline(uint256 aDeadline) public
