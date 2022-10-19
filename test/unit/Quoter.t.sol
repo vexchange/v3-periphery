@@ -13,6 +13,8 @@ import { ReservoirLibrary } from "src/libraries/ReservoirLibrary.sol";
 
 contract QuoterTest is BaseTest
 {
+    using FixedPointMathLib for uint256;
+
     WETH    private _weth   = new WETH();
     Quoter  private _quoter = new Quoter(address(_factory), address(_weth));
 
@@ -74,8 +76,8 @@ contract QuoterTest is BaseTest
         // assume
         uint256 lAmountBToMint = bound(aAmountBToMint, 100_000e18, 400_000e18);
         uint256 lAmountCToMint = bound(aAmountCToMint, 600_000e18, 2_000_000e18);
-        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1e3, type(uint112).max - lAmountBToMint);
-        uint256 lAmountCToAdd = bound(aAmountCToAdd, 1e3, type(uint112).max - lAmountCToMint);
+        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1e6, type(uint112).max - lAmountBToMint);
+        uint256 lAmountCToAdd = bound(aAmountCToAdd, 1e6, type(uint112).max - lAmountCToMint);
 
         // arrange
         ConstantProductPair lPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenC), 0));
@@ -97,6 +99,8 @@ contract QuoterTest is BaseTest
         assertTrue(lAmountBOptimal != lAmountCOptimal);
         assertEq(lExpectedLiq, Math.min(lAmountBOptimal * lTotalSupply / lAmountBToMint, lAmountCOptimal * lTotalSupply / lAmountCToMint));
         assertEq(lActualLiq, lExpectedLiq);
+        // check that they are in the same proportions
+        assertApproxEqRel(lAmountBOptimal.divWadDown(lAmountCOptimal), lAmountBToMint.divWadDown(lAmountCToMint), 0.0001e18); // 1 bp
     }
 
     function testQuoteAddLiquidity_Stable_Balanced(uint256 aAmountAToAdd, uint256 aAmountBToAdd) public
@@ -152,6 +156,8 @@ contract QuoterTest is BaseTest
         assertLe(lAmountCOptimal, lAmountCToAdd);
         assertLt(lActualLiq, lAmountBOptimal + lAmountCOptimal);
         assertEq(lExpectedLiq, lActualLiq);
+        // check that they are in the same proportions
+        assertApproxEqRel(lAmountBOptimal.divWadDown(lAmountCOptimal), lAmountBToMint.divWadDown(lAmountCToMint), 0.00001e18); // 0.1 bp
     }
 
     function testQuoteRemoveLiquidity(uint256 aLiquidity) public
