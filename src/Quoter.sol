@@ -1,6 +1,5 @@
 pragma solidity ^0.8.0;
 
-import { ERC20 } from "solmate/tokens/ERC20.sol";
 import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
 import { Math } from "@openzeppelin/utils/math/Math.sol";
 
@@ -76,8 +75,8 @@ contract Quoter is IQuoter, PeripheryImmutableState
     ) external view returns (uint256 rAmountA, uint256 rAmountB, uint256 rLiq) {
         address lPair = factory.getPair(aTokenA, aTokenB, aCurveId);
         (uint256 lReserveA, uint256 lReserveB) = (0,0);
-        uint256 lTokenAPrecisionMultiplier = uint256(10) ** (18 - ERC20(aTokenA).decimals());
-        uint256 lTokenBPrecisionMultiplier = uint256(10) ** (18 - ERC20(aTokenB).decimals());
+        uint256 lTokenAPrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(aTokenA);
+        uint256 lTokenBPrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(aTokenB);
         uint256 lTotalSupply = 0;
 
         if (lPair != address(0)) {

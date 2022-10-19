@@ -8,6 +8,39 @@ import { ReservoirLibrary } from "src/libraries/ReservoirLibrary.sol";
 
 contract ReservoirLibraryTest is BaseTest
 {
+    function testGetSwapFee() public
+    {
+        // assert
+        assertEq(ReservoirLibrary.getSwapFee(address(_factory), address(_tokenA), address(_tokenB), 0), 3000);
+    }
+
+    // commented out as vm.expectRevert does not work properly on library functions
+//    function testGetSwapFee_PairDoesNotExist() public
+//    {
+//        // act & assert
+//        vm.expectRevert();
+//        ReservoirLibrary.getSwapFee(address(_factory), address(_tokenA), address(_tokenC), 0);
+//    }
+
+    function testGetPrecisionMultiplier() public
+    {
+        // arrange
+        MintableERC20 l0DecimalToken = new MintableERC20("zero", "0", 0);
+
+        // act & assert
+        assertEq(ReservoirLibrary.getPrecisionMultiplier(address(_tokenA)), 1);
+        assertEq(ReservoirLibrary.getPrecisionMultiplier(address(_tokenD)), 1e12);
+        assertEq(ReservoirLibrary.getPrecisionMultiplier(address(l0DecimalToken)), 1e18);
+    }
+
+    // commented out as vm.expectRevert does not work properly on library functions
+//    function testGetPrecisionMultiplier_MoreThan18Decimals() public
+//    {
+//        // act & assert
+//        vm.expectRevert(stdError.arithmeticError);
+//        ReservoirLibrary.getPrecisionMultiplier(address(_tokenE));
+//    }
+
     function testQuote_AmountZero() public
     {
         // arrange
