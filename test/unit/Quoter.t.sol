@@ -16,6 +16,35 @@ contract QuoterTest is BaseTest
     WETH    private _weth   = new WETH();
     Quoter  private _quoter = new Quoter(address(_factory), address(_weth));
 
+    function testQuoteAddLiquidity_PairDoesNotExistYet(uint256 aAmountBToAdd, uint256 aAmountCToAdd, uint256 aCurveId) public
+    {
+        // assume
+        uint256 lAmountBToAdd = bound(aAmountBToAdd, 60_000_000e18, 100_000_000e18);
+        uint256 lAmountCToAdd = bound(aAmountCToAdd, 120_000_000e18, 180_000_000e18);
+        uint256 lCurveId = bound(aCurveId, 0, 1);
+
+        // act
+        (uint256 lAmountBOptimal, uint256 lAmountCOptimal, uint256 lLiq)
+            = _quoter.quoteAddLiquidity(address(_tokenB), address(_tokenC), lCurveId, lAmountBToAdd, lAmountCToAdd);
+
+        // assert
+        assertEq(lAmountBOptimal, lAmountBToAdd);
+        assertEq(lAmountCOptimal, lAmountCToAdd);
+        if (lCurveId == 0) {
+            assertEq(lLiq, FixedPointMathLib.sqrt(lAmountBToAdd * lAmountCToAdd) - _quoter.MINIMUM_LIQUIDITY());
+        }
+        else if (lCurveId == 1) {
+            uint256 lExpectedStableLiq = ReservoirLibrary.computeStableLiquidity(
+                lAmountBToAdd,
+                lAmountCToAdd,
+                1,
+                1,
+                2 * 1000
+            );
+            assertEq(lLiq, lExpectedStableLiq - _quoter.MINIMUM_LIQUIDITY());
+        }
+    }
+
     function testQuoteAddLiquidity_ConstantProduct_Balanced(uint256 aAmountAToAdd, uint256 aAmountBToAdd) public
     {
         // assume

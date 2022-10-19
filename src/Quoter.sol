@@ -96,7 +96,8 @@ contract Quoter is IQuoter, PeripheryImmutableState
                     rAmountB,
                     lTokenAPrecisionMultiplier,
                     lTokenBPrecisionMultiplier,
-                    2 * StablePair(lPair).getCurrentAPrecise()
+                    // todo: refactor
+                    2 * uint64(uint256(factory.get(keccak256(abi.encodePacked("ConstantProductPair::amplificationCoefficient")))))
                 );
                 rLiq = newLiq - MINIMUM_LIQUIDITY;
             }
