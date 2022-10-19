@@ -7,7 +7,7 @@ import { IWETH } from "src/interfaces/IWETH.sol";
 /// @title Immutable state
 /// @notice Functions that return immutable state of the router
 interface IPeripheryImmutableState {
-    /// @return Returns the address of the Uniswap V3 factory
+    /// @return Returns the address of the Reservoir generic factory
     function factory() external view returns (IGenericFactory);
 
     /// @return Returns the address of WETH
