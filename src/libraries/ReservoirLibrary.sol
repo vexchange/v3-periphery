@@ -4,7 +4,7 @@ import { ERC20 } from "solmate/tokens/ERC20.sol";
 
 import { IReservoirPair } from "v3-core/src/interfaces/IReservoirPair.sol";
 import { IGenericFactory } from "v3-core/src/interfaces/IGenericFactory.sol";
-import { ExtraData } from "src/interfaces/IReservoirRouter.sol";
+import { ExtraData } from "src/interfaces/IQuoter.sol";
 
 import { ConstantProductPair } from "v3-core/src/curve/constant-product/ConstantProductPair.sol";
 import { StablePair } from "v3-core/src/curve/stable/StablePair.sol";
