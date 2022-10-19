@@ -8,6 +8,51 @@ import { ReservoirLibrary } from "src/libraries/ReservoirLibrary.sol";
 
 contract ReservoirLibraryTest is BaseTest
 {
+    function testQuote_AmountZero() public
+    {
+        // arrange
+        uint256 lAmountA = 0;
+
+        // act & assert
+        vm.expectRevert("RL: INSUFFICIENT_AMOUNT");
+        ReservoirLibrary.quote(lAmountA, 1, 2);
+    }
+
+    function testQuote_ReserveZero() public
+    {
+        // act & assert
+        vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
+        ReservoirLibrary.quote(40, 0, 0);
+    }
+
+    function testQuote_Balanced(uint256 aReserveA, uint256 aAmountA) public
+    {
+        // assume
+        uint256 lReserveA = bound(aReserveA, 1, type(uint112).max);
+        uint256 lReserveB = lReserveA;
+        uint256 lAmountA = bound(aAmountA, 1, type(uint112).max);
+
+        // act
+        uint256 lAmountB = ReservoirLibrary.quote(lAmountA, lReserveA, lReserveB);
+
+        // assert
+        assertEq(lAmountB, lAmountA);
+    }
+
+    function testQuote_Unbalanced(uint256 aReserveA, uint256 aReserveB, uint256 aAmountA) public
+    {
+        // assume
+        uint256 lReserveA = bound(aReserveA, 1, type(uint112).max);
+        uint256 lReserveB = bound(aReserveB, 1, type(uint112).max);
+        uint256 lAmountA = bound(aAmountA, 1, type(uint112).max);
+
+        // act
+        uint256 lAmountB = ReservoirLibrary.quote(lAmountA, lReserveA, lReserveB);
+
+        // assert
+        assertEq(lAmountB, lAmountA * lReserveB / lReserveA);
+    }
+
     function testGetAmountOut_InsufficientLiquidity(uint256 aAmountIn) public
     {
         // assume
