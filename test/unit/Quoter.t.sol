@@ -7,6 +7,7 @@ import { Math } from "@openzeppelin/utils/math/Math.sol";
 import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
 
 import { MathUtils } from "v3-core/src/libraries/MathUtils.sol";
+import { StableMath } from "v3-core/src/libraries/StableMath.sol";
 
 import { Quoter, ExtraData } from "src/Quoter.sol";
 import { ReservoirLibrary } from "src/libraries/ReservoirLibrary.sol";
@@ -41,7 +42,7 @@ contract QuoterTest is BaseTest
                 lAmountCToAdd,
                 1,
                 1,
-                2 * 1000
+                2 * 1000 * StableMath.A_PRECISION
             );
             assertEq(lLiq, lExpectedStableLiq - _quoter.MINIMUM_LIQUIDITY());
         }
