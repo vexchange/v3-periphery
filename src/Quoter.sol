@@ -1,10 +1,13 @@
-pragma solidity ^0.8.0;
+pragma solidity 0.8.13;
 
 import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
 import { Math } from "@openzeppelin/utils/math/Math.sol";
 
 import { IReservoirPair } from "v3-core/src/interfaces/IReservoirPair.sol";
 import { StablePair } from "v3-core/src/curve/stable/StablePair.sol";
+import { Bytes32Lib } from "v3-core/src/libraries/Bytes32.sol";
+import { FactoryStoreLib, GenericFactory } from "v3-core/src/libraries/FactoryStore.sol";
+import { StableMath } from "v3-core/src/libraries/StableMath.sol";
 
 import { IQuoter, ExtraData } from "src/interfaces/IQuoter.sol";
 
@@ -13,6 +16,9 @@ import { PeripheryImmutableState } from "src/abstract/PeripheryImmutableState.so
 
 contract Quoter is IQuoter, PeripheryImmutableState
 {
+    using FactoryStoreLib for GenericFactory;
+    using Bytes32Lib for bytes32;
+
     constructor(address aFactory, address aWETH) PeripheryImmutableState(aFactory, aWETH)
     {} // solhint-disable-line no-empty-blocks
 
@@ -95,8 +101,7 @@ contract Quoter is IQuoter, PeripheryImmutableState
                     rAmountB,
                     lTokenAPrecisionMultiplier,
                     lTokenBPrecisionMultiplier,
-                    // todo: refactor
-                    2 * uint64(uint256(factory.get(keccak256(abi.encodePacked("ConstantProductPair::amplificationCoefficient")))))
+                    2 * factory.read("ConstantProductPair::amplificationCoefficient").toUint64() * StableMath.A_PRECISION
                 );
                 rLiq = newLiq - MINIMUM_LIQUIDITY;
             }
