@@ -1,11 +1,14 @@
-pragma solidity ^0.8.0;
+pragma solidity 0.8.13;
 
-import { ERC20 } from "solmate/tokens/ERC20.sol";
 import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
 import { Math } from "@openzeppelin/utils/math/Math.sol";
 
 import { IReservoirPair } from "v3-core/src/interfaces/IReservoirPair.sol";
 import { StablePair } from "v3-core/src/curve/stable/StablePair.sol";
+import { Bytes32Lib } from "v3-core/src/libraries/Bytes32.sol";
+import { FactoryStoreLib } from "v3-core/src/libraries/FactoryStore.sol";
+import { GenericFactory } from "v3-core/src/GenericFactory.sol";
+import { StableMath } from "v3-core/src/libraries/StableMath.sol";
 
 import { IQuoter, ExtraData } from "src/interfaces/IQuoter.sol";
 
@@ -14,6 +17,9 @@ import { PeripheryImmutableState } from "src/abstract/PeripheryImmutableState.so
 
 contract Quoter is IQuoter, PeripheryImmutableState
 {
+    using FactoryStoreLib for GenericFactory;
+    using Bytes32Lib for bytes32;
+
     constructor(address aFactory, address aWETH) PeripheryImmutableState(aFactory, aWETH)
     {} // solhint-disable-line no-empty-blocks
 
@@ -76,8 +82,8 @@ contract Quoter is IQuoter, PeripheryImmutableState
     ) external view returns (uint256 rAmountA, uint256 rAmountB, uint256 rLiq) {
         address lPair = factory.getPair(aTokenA, aTokenB, aCurveId);
         (uint256 lReserveA, uint256 lReserveB) = (0,0);
-        uint256 lTokenAPrecisionMultiplier = uint256(10) ** (18 - ERC20(aTokenA).decimals());
-        uint256 lTokenBPrecisionMultiplier = uint256(10) ** (18 - ERC20(aTokenB).decimals());
+        uint256 lTokenAPrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(aTokenA);
+        uint256 lTokenBPrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(aTokenB);
         uint256 lTotalSupply = 0;
 
         if (lPair != address(0)) {
@@ -96,7 +102,7 @@ contract Quoter is IQuoter, PeripheryImmutableState
                     rAmountB,
                     lTokenAPrecisionMultiplier,
                     lTokenBPrecisionMultiplier,
-                    2 * StablePair(lPair).getCurrentAPrecise()
+                    2 * factory.read("ConstantProductPair::amplificationCoefficient").toUint64() * StableMath.A_PRECISION
                 );
                 rLiq = newLiq - MINIMUM_LIQUIDITY;
             }

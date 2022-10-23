@@ -5,9 +5,90 @@ import "v3-core/test/__fixtures/BaseTest.sol";
 import { ExtraData } from "src/interfaces/IQuoter.sol";
 
 import { ReservoirLibrary } from "src/libraries/ReservoirLibrary.sol";
+import { DummyReservoirLibrary } from "test/dummy/DummyReservoirLibrary.sol";
 
 contract ReservoirLibraryTest is BaseTest
 {
+    DummyReservoirLibrary private lReservoirLib = new DummyReservoirLibrary();
+
+    function testGetSwapFee() public
+    {
+        // assert
+        assertEq(ReservoirLibrary.getSwapFee(address(_factory), address(_tokenA), address(_tokenB), 0), 3000);
+    }
+
+    // commented out as vm.expectRevert does not work properly on library functions
+    function testGetSwapFee_PairDoesNotExist() public
+    {
+        // act & assert
+        vm.expectRevert();
+        lReservoirLib.getSwapFee(address(_factory), address(_tokenA), address(_tokenC), 0);
+    }
+
+    function testGetPrecisionMultiplier() public
+    {
+        // arrange
+        MintableERC20 l0DecimalToken = new MintableERC20("zero", "0", 0);
+
+        // act & assert
+        assertEq(ReservoirLibrary.getPrecisionMultiplier(address(_tokenA)), 1);
+        assertEq(ReservoirLibrary.getPrecisionMultiplier(address(_tokenD)), 1e12);
+        assertEq(ReservoirLibrary.getPrecisionMultiplier(address(l0DecimalToken)), 1e18);
+    }
+
+    // commented out as vm.expectRevert does not work properly on library functions
+    function testGetPrecisionMultiplier_MoreThan18Decimals() public
+    {
+        // act & assert
+        vm.expectRevert(stdError.arithmeticError);
+        lReservoirLib.getPrecisionMultiplier(address(_tokenE));
+    }
+
+    function testQuote_AmountZero() public
+    {
+        // arrange
+        uint256 lAmountA = 0;
+
+        // act & assert
+        vm.expectRevert("RL: INSUFFICIENT_AMOUNT");
+        ReservoirLibrary.quote(lAmountA, 1, 2);
+    }
+
+    function testQuote_ReserveZero() public
+    {
+        // act & assert
+        vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
+        ReservoirLibrary.quote(40, 0, 0);
+    }
+
+    function testQuote_Balanced(uint256 aReserveA, uint256 aAmountA) public
+    {
+        // assume
+        uint256 lReserveA = bound(aReserveA, 1, type(uint112).max);
+        uint256 lReserveB = lReserveA;
+        uint256 lAmountA = bound(aAmountA, 1, type(uint112).max);
+
+        // act
+        uint256 lAmountB = ReservoirLibrary.quote(lAmountA, lReserveA, lReserveB);
+
+        // assert
+        assertEq(lAmountB, lAmountA);
+    }
+
+    function testQuote_Unbalanced(uint256 aReserveA, uint256 aReserveB, uint256 aAmountA) public
+    {
+        // assume
+        uint256 lReserveA = bound(aReserveA, 1, type(uint112).max);
+        uint256 lReserveB = bound(aReserveB, 1, type(uint112).max);
+        uint256 lAmountA = bound(aAmountA, 1, type(uint112).max);
+
+        // act
+        uint256 lAmountB = ReservoirLibrary.quote(lAmountA, lReserveA, lReserveB);
+
+        // assert
+        assertEq(lAmountB, lAmountA * lReserveB / lReserveA);
+    }
+
     function testGetAmountOut_InsufficientLiquidity(uint256 aAmountIn) public
     {
         // assume
