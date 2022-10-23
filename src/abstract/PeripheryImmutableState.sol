@@ -2,7 +2,7 @@
 pragma solidity 0.8.13;
 
 import { IPeripheryImmutableState } from "src/interfaces/IPeripheryImmutableState.sol";
-import { GenericFactory } from "v3-core/src/libraries/FactoryStore.sol";
+import { GenericFactory } from "v3-core/src/GenericFactory.sol";
 import { IWETH } from "src/interfaces/IWETH.sol";
 
 /// @title Immutable state
