@@ -5,9 +5,12 @@ import "v3-core/test/__fixtures/BaseTest.sol";
 import { ExtraData } from "src/interfaces/IQuoter.sol";
 
 import { ReservoirLibrary } from "src/libraries/ReservoirLibrary.sol";
+import { DummyReservoirLibrary } from "test/dummy/DummyReservoirLibrary.sol";
 
 contract ReservoirLibraryTest is BaseTest
 {
+    DummyReservoirLibrary private lReservoirLib = new DummyReservoirLibrary();
+
     function testGetSwapFee() public
     {
         // assert
@@ -15,12 +18,12 @@ contract ReservoirLibraryTest is BaseTest
     }
 
     // commented out as vm.expectRevert does not work properly on library functions
-//    function testGetSwapFee_PairDoesNotExist() public
-//    {
-//        // act & assert
-//        vm.expectRevert();
-//        ReservoirLibrary.getSwapFee(address(_factory), address(_tokenA), address(_tokenC), 0);
-//    }
+    function testGetSwapFee_PairDoesNotExist() public
+    {
+        // act & assert
+        vm.expectRevert();
+        lReservoirLib.getSwapFee(address(_factory), address(_tokenA), address(_tokenC), 0);
+    }
 
     function testGetPrecisionMultiplier() public
     {
@@ -34,12 +37,12 @@ contract ReservoirLibraryTest is BaseTest
     }
 
     // commented out as vm.expectRevert does not work properly on library functions
-//    function testGetPrecisionMultiplier_MoreThan18Decimals() public
-//    {
-//        // act & assert
-//        vm.expectRevert(stdError.arithmeticError);
-//        ReservoirLibrary.getPrecisionMultiplier(address(_tokenE));
-//    }
+    function testGetPrecisionMultiplier_MoreThan18Decimals() public
+    {
+        // act & assert
+        vm.expectRevert(stdError.arithmeticError);
+        lReservoirLib.getPrecisionMultiplier(address(_tokenE));
+    }
 
     function testQuote_AmountZero() public
     {
