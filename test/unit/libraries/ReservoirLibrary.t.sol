@@ -285,8 +285,8 @@ contract ReservoirLibraryTest is BaseTest
 
         // assert
         assertEq(lAmounts[0], lAmtIn);
-        assertEq(lAmounts[1], 99999999587453182806);
-        assertEq(lAmounts[2], 99621119129708441046);
+        assertEq(lAmounts[1], 99999999589842730809);
+        assertEq(lAmounts[2], 99910889683691058630);
     }
 
     function testGetAmountsOut_MixedCurves() public
@@ -315,7 +315,7 @@ contract ReservoirLibraryTest is BaseTest
 
         // assert
         assertEq(lAmounts[0], lAmtIn);
-        assertEq(lAmounts[lAmounts.length - 1], 9969482692285773);
+        assertEq(lAmounts[lAmounts.length - 1], 9969485213337276);
     }
 
     function testGetAmountsIn_CP() public
@@ -392,7 +392,7 @@ contract ReservoirLibraryTest is BaseTest
         uint256[] memory lAmounts = ReservoirLibrary.getAmountsIn(address(_factory), lAmtOut, lPath, lCurveIds);
 
         // assert
-        assertEq(lAmounts[0], 64389168304435401779);
+        assertEq(lAmounts[0], 64202998226586087058);
         assertEq(lAmounts[1], 64126806649456566421);
         assertEq(lAmounts[2], lAmtOut);
     }
