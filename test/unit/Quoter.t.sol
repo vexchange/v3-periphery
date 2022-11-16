@@ -42,7 +42,7 @@ contract QuoterTest is BaseTest
                 lAmountCToAdd,
                 1,
                 1,
-                2 * 1000 * StableMath.A_PRECISION
+                2 * DEFAULT_AMP_COEFF * StableMath.A_PRECISION
             );
             assertEq(lLiq, lExpectedStableLiq - _quoter.MINIMUM_LIQUIDITY());
         }
@@ -51,8 +51,8 @@ contract QuoterTest is BaseTest
     function testQuoteAddLiquidity_ConstantProduct_Balanced(uint256 aAmountAToAdd, uint256 aAmountBToAdd) public
     {
         // assume
-        uint256 lAmountAToAdd = bound(aAmountAToAdd, 1000, type(uint112).max);
-        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1000, type(uint112).max);
+        uint256 lAmountAToAdd = bound(aAmountAToAdd, 1000, type(uint112).max - INITIAL_MINT_AMOUNT);
+        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1000, type(uint112).max - INITIAL_MINT_AMOUNT);
 
         // act
         (uint256 lAmountAOptimal, uint256 lAmountBOptimal, uint256 lLiq)
@@ -107,8 +107,8 @@ contract QuoterTest is BaseTest
     function testQuoteAddLiquidity_Stable_Balanced(uint256 aAmountAToAdd, uint256 aAmountBToAdd) public
     {
         // assume
-        uint256 lAmountAToAdd = bound(aAmountAToAdd, 1000, type(uint112).max);
-        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1000, type(uint112).max);
+        uint256 lAmountAToAdd = bound(aAmountAToAdd, 1000, type(uint112).max - INITIAL_MINT_AMOUNT);
+        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1000, type(uint112).max - INITIAL_MINT_AMOUNT);
 
         // act
         (uint256 lAmountAOptimal, uint256 lAmountBOptimal, uint256 lLiq)

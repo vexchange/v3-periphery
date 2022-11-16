@@ -115,7 +115,7 @@ contract ReservoirLibraryTest is BaseTest
     function testGetAmountOutConstantProduct(uint256 aAmountIn) public
     {
         // assume
-        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max);
+        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max - INITIAL_MINT_AMOUNT);
 
         // arrange
         (uint112 lReserve0, uint112 lReserve1, ) = _constantProductPair.getReserves();
@@ -134,7 +134,7 @@ contract ReservoirLibraryTest is BaseTest
     function testGetAmountOutStable(uint256 aAmountIn) public
     {
         // assume
-        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max);
+        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max - INITIAL_MINT_AMOUNT);
 
         // arrange
         (uint112 lReserve0, uint112 lReserve1, ) = _stablePair.getReserves();
