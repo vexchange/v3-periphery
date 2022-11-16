@@ -204,7 +204,7 @@ contract QuoterTest is BaseTest
         uint256 lReserveOut = bound(aReserveOut, lReserveIn / 1e3, Math.min(lReserveIn * 1e3, type(uint112).max));
         uint256 lAmtIn = bound(aAmtIn, 1e6, type(uint112).max);
         uint256 lSwapFee = bound(aSwapFee, 0, 200);
-        uint256 lAmpCoefficient = bound(aAmpCoeff, 100, 1000000);
+        uint256 lAmpCoefficient = bound(aAmpCoeff, StableMath.MIN_A * StableMath.A_PRECISION, StableMath.MAX_A * StableMath.A_PRECISION);
 
         ExtraData memory lData = ExtraData(1, 1, uint64(lAmpCoefficient));
 
