@@ -9,5 +9,5 @@ remappings = [
 match_path = "test/unit/*.sol"
 verbosity = 3
 
-[profile.ci]
-fuzz-runs = 10_000
+[profile.ci.fuzz]
+runs = 10_000
