@@ -365,7 +365,7 @@ contract ReservoirRouterTest is BaseTest
         // assert
         assertEq(lPair.balanceOf(_bob), 0);
         assertEq(_tokenA.balanceOf(_bob), lLiq * 5000e18 / (lLiq + lPair.MINIMUM_LIQUIDITY()));
-        assertEq(_bob.balance,  5 ether + lLiq * 5 ether / (lLiq + lPair.MINIMUM_LIQUIDITY()));
+        assertEq(_bob.balance, 5 ether + lLiq * 5 ether / (lLiq + lPair.MINIMUM_LIQUIDITY()));
     }
 
     function testRemoveLiquidity_ReceivedLessThanMin() public
