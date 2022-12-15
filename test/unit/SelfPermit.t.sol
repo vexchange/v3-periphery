@@ -11,7 +11,7 @@ contract SelfPermitTest is BaseTest {
     WETH            private _weth   = new WETH();
     ReservoirRouter private _router = new ReservoirRouter(address(_factory), address(_weth));
 
-    TestERC20PermitAllowed private _testERC20 = new TestERC20PermitAllowed(5000);
+    TestERC20PermitAllowed private _testERC20 = new TestERC20PermitAllowed(type(uint256).max);
     bytes32 private constant PERMIT_TYPEHASH = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
 
     uint256 private _ownerPrivateKey = 0x5555;
@@ -55,16 +55,44 @@ contract SelfPermitTest is BaseTest {
         // assert
         assertEq(_testERC20.allowance(_owner, _alice), lValue);
         assertEq(_testERC20.nonces(_owner), 1);
+        vm.prank(_alice);
+        _testERC20.transferFrom(_owner, _alice, lValue);
+        assertEq(_testERC20.balanceOf(_alice), lValue);
     }
 
-
-    function testSelfPermit() external
+    function testSelfPermit(uint256 aValue) external
     {
+        // assume
+        uint256 lValue = bound(aValue, 1, type(uint256).max);
 
+        // arrange
+        uint256 lDeadline = block.timestamp + 100;
+        (uint8 lV, bytes32 lR, bytes32 lS) = _getPermitSignature(_testERC20, address(_router), lValue, lDeadline);
+
+        // act
+        vm.prank(_owner);
+        _router.selfPermit(address(_testERC20), lValue, lDeadline, lV, lR, lS);
+
+        // assert
+        assertEq(_testERC20.allowance(_owner, address(_router)), lValue);
     }
 
-    function testSelfPermitIfNecessary() external
+    function testSelfPermitIfNecessary_SufficientAllowanceNoAction(uint256 aValue) external
     {
+        // assume
+        uint256 lValue = bound(aValue, 1, type(uint256).max);
 
+        // arrange
+        uint256 lDeadline = block.timestamp + 100;
+        vm.prank(_owner);
+        _testERC20.approve(_alice, type(uint256).max);
+        (uint8 lV, bytes32 lR, bytes32 lS) = _getPermitSignature(_testERC20, address(_router), lValue, lDeadline);
+
+        // act
+        vm.prank(_owner);
+        _router.selfPermitIfNecessary(address(_testERC20), lValue, lDeadline, lV, lR, lS);
+
+        // assert
+        assertEq(_testERC20.allowance(_owner, _alice), type(uint256).max);
     }
 }
