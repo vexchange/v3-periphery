@@ -4,31 +4,57 @@ import "v3-core/test/__fixtures/BaseTest.sol";
 
 import { WETH } from "solmate/tokens/WETH.sol";
 import { ReservoirRouter } from "src/ReservoirRouter.sol";
+import { TestERC20PermitAllowed } from "test/dummy/TestERC20PermitAllowed.sol";
 
 contract SelfPermitTest is BaseTest {
 
     WETH            private _weth   = new WETH();
     ReservoirRouter private _router = new ReservoirRouter(address(_factory), address(_weth));
 
-    function _getPermitSignature() private returns (uint8, bytes32, bytes32)
+    TestERC20PermitAllowed private _testERC20 = new TestERC20PermitAllowed(5000);
+    bytes32 private constant PERMIT_TYPEHASH = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
+
+    uint256 private _ownerPrivateKey = 0x5555;
+    address private _owner = vm.addr(_ownerPrivateKey);
+
+    function setUp() public
     {
-        return(0, bytes32(0), bytes32(0));
+        _testERC20.transfer(_owner, _testERC20.balanceOf(address(this)));
     }
 
-    function testPermit() external
+    function _getPermitSignature(
+        TestERC20PermitAllowed aToken, address aSpender, uint256 aValue, uint256 aDeadline
+    ) private returns (uint8 rV, bytes32 rR, bytes32 rS)
     {
+        bytes32 lDigest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                aToken.DOMAIN_SEPARATOR(),
+                keccak256(abi.encode(PERMIT_TYPEHASH, _owner, aSpender, aValue, aToken.nonces(_owner), aDeadline))
+            )
+        );
+
+        (rV, rR, rS) = vm.sign(_ownerPrivateKey, lDigest);
+    }
+
+    function testPermit(uint256 aValue) external
+    {
+        // assume
+        uint256 lValue = bound(aValue, 1, type(uint256).max);
+
         // arrange
-        uint256 lValue = 595959; // make fuzzed later
-        (uint8 lV, bytes32 lR, bytes32 lS) = _getPermitSignature();
+        uint256 lDeadline = block.timestamp + 100;
+        (uint8 lV, bytes32 lR, bytes32 lS) = _getPermitSignature(_testERC20, _alice, lValue, lDeadline);
 
-        // sanity
-        // allowance at the beginning is zero
-
+        // sanity - allowance at the beginning is zero
+        assertEq(_testERC20.allowance(_owner, _alice), 0);
 
         // act
+        _testERC20.permit(_owner, _alice, lValue, lDeadline, lV, lR, lS);
 
         // assert
-
+        assertEq(_testERC20.allowance(_owner, _alice), lValue);
+        assertEq(_testERC20.nonces(_owner), 1);
     }
 
 
