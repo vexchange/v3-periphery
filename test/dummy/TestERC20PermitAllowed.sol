@@ -5,6 +5,7 @@ import { IERC20PermitAllowed } from "src/interfaces/IERC20PermitAllowed.sol";
 
 /// @dev this class exposes the EIP-2612 type of permit function as well as the "allowed" type of permit function
 /// to facilitate testing with just one class instead of having two distinct ones
+/// the permit with expired and allow just uses the EIP2616 type hash, just for testing purposes
 contract TestERC20PermitAllowed is ERC20Permit, IERC20PermitAllowed {
     constructor(uint256 aAmountToMint) ERC20("Test ERC20", "TEST") ERC20Permit("Test ERC20") {
         _mint(msg.sender, aAmountToMint);
