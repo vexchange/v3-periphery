@@ -10,13 +10,15 @@ import { PeripheryImmutableState } from "src/abstract/PeripheryImmutableState.so
 import { PeripheryPayments } from "src/abstract/PeripheryPayments.sol";
 import { PredicateHelper } from "src/abstract/PredicateHelper.sol";
 import { Multicall } from "src/abstract/Multicall.sol";
+import { SelfPermit } from "src/abstract/SelfPermit.sol";
 
 contract ReservoirRouter is
     IReservoirRouter,
     PeripheryImmutableState,
     PeripheryPayments,
     PredicateHelper,
-    Multicall
+    Multicall,
+    SelfPermit
 {
     constructor (address aFactory, address aWETH) PeripheryImmutableState(aFactory, aWETH)
     {} // solhint-disable-line no-empty-blocks
