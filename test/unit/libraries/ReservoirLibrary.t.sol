@@ -7,26 +7,22 @@ import { ExtraData } from "src/interfaces/IQuoter.sol";
 import { ReservoirLibrary } from "src/libraries/ReservoirLibrary.sol";
 import { DummyReservoirLibrary } from "test/dummy/DummyReservoirLibrary.sol";
 
-contract ReservoirLibraryTest is BaseTest
-{
+contract ReservoirLibraryTest is BaseTest {
     DummyReservoirLibrary private lReservoirLib = new DummyReservoirLibrary();
 
-    function testGetSwapFee() public
-    {
+    function testGetSwapFee() public {
         // assert
         assertEq(ReservoirLibrary.getSwapFee(address(_factory), address(_tokenA), address(_tokenB), 0), 3000);
     }
 
     // commented out as vm.expectRevert does not work properly on library functions
-    function testGetSwapFee_PairDoesNotExist() public
-    {
+    function testGetSwapFee_PairDoesNotExist() public {
         // act & assert
         vm.expectRevert();
         lReservoirLib.getSwapFee(address(_factory), address(_tokenA), address(_tokenC), 0);
     }
 
-    function testGetPrecisionMultiplier() public
-    {
+    function testGetPrecisionMultiplier() public {
         // arrange
         MintableERC20 l0DecimalToken = new MintableERC20("zero", "0", 0);
 
@@ -37,15 +33,13 @@ contract ReservoirLibraryTest is BaseTest
     }
 
     // commented out as vm.expectRevert does not work properly on library functions
-    function testGetPrecisionMultiplier_MoreThan18Decimals() public
-    {
+    function testGetPrecisionMultiplier_MoreThan18Decimals() public {
         // act & assert
         vm.expectRevert(stdError.arithmeticError);
         lReservoirLib.getPrecisionMultiplier(address(_tokenE));
     }
 
-    function testQuote_AmountZero() public
-    {
+    function testQuote_AmountZero() public {
         // arrange
         uint256 lAmountA = 0;
 
@@ -54,15 +48,13 @@ contract ReservoirLibraryTest is BaseTest
         ReservoirLibrary.quote(lAmountA, 1, 2);
     }
 
-    function testQuote_ReserveZero() public
-    {
+    function testQuote_ReserveZero() public {
         // act & assert
         vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
         ReservoirLibrary.quote(40, 0, 0);
     }
 
-    function testQuote_Balanced(uint256 aReserveA, uint256 aAmountA) public
-    {
+    function testQuote_Balanced(uint256 aReserveA, uint256 aAmountA) public {
         // assume
         uint256 lReserveA = bound(aReserveA, 1, type(uint112).max);
         uint256 lReserveB = lReserveA;
@@ -75,8 +67,7 @@ contract ReservoirLibraryTest is BaseTest
         assertEq(lAmountB, lAmountA);
     }
 
-    function testQuote_Unbalanced(uint256 aReserveA, uint256 aReserveB, uint256 aAmountA) public
-    {
+    function testQuote_Unbalanced(uint256 aReserveA, uint256 aReserveB, uint256 aAmountA) public {
         // assume
         uint256 lReserveA = bound(aReserveA, 1, type(uint112).max);
         uint256 lReserveB = bound(aReserveB, 1, type(uint112).max);
@@ -89,36 +80,33 @@ contract ReservoirLibraryTest is BaseTest
         assertEq(lAmountB, lAmountA * lReserveB / lReserveA);
     }
 
-    function testGetAmountOut_InsufficientLiquidity(uint256 aAmountIn) public
-    {
+    function testGetAmountOut_InsufficientLiquidity(uint256 aAmountIn) public {
         // assume
         uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max);
 
         // act & assert
         vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
-        ReservoirLibrary.getAmountOutStable(lAmountIn, 0, 0, 0, ExtraData(0,0,0));
+        ReservoirLibrary.getAmountOutStable(lAmountIn, 0, 0, 0, ExtraData(0, 0, 0));
 
         vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
         ReservoirLibrary.getAmountOutConstantProduct(lAmountIn, 0, 0, 0);
     }
 
-    function testGetAmountOut_InsufficientInputAmount() public
-    {
+    function testGetAmountOut_InsufficientInputAmount() public {
         // act & revert
         vm.expectRevert("RL: INSUFFICIENT_INPUT_AMOUNT");
-        ReservoirLibrary.getAmountOutStable(0, 10, 10, 30, ExtraData(0,0,0));
+        ReservoirLibrary.getAmountOutStable(0, 10, 10, 30, ExtraData(0, 0, 0));
 
         vm.expectRevert("RL: INSUFFICIENT_INPUT_AMOUNT");
         ReservoirLibrary.getAmountOutConstantProduct(0, 10, 10, 30);
     }
 
-    function testGetAmountOutConstantProduct(uint256 aAmountIn) public
-    {
+    function testGetAmountOutConstantProduct(uint256 aAmountIn) public {
         // assume
         uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max - INITIAL_MINT_AMOUNT);
 
         // arrange
-        (uint112 lReserve0, uint112 lReserve1, ) = _constantProductPair.getReserves();
+        (uint112 lReserve0, uint112 lReserve1,) = _constantProductPair.getReserves();
         _tokenA.mint(address(_constantProductPair), lAmountIn);
         uint256 lSwapFee = _constantProductPair.swapFee();
 
@@ -131,13 +119,12 @@ contract ReservoirLibraryTest is BaseTest
         assertEq(lAmountOut, lActualAmountOut);
     }
 
-    function testGetAmountOutStable(uint256 aAmountIn) public
-    {
+    function testGetAmountOutStable(uint256 aAmountIn) public {
         // assume
         uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max - INITIAL_MINT_AMOUNT);
 
         // arrange
-        (uint112 lReserve0, uint112 lReserve1, ) = _stablePair.getReserves();
+        (uint112 lReserve0, uint112 lReserve1,) = _stablePair.getReserves();
         _tokenA.mint(address(_stablePair), lAmountIn);
         uint256 lSwapFee = _stablePair.swapFee();
         uint64 lToken0PrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(_stablePair.token0());
@@ -150,7 +137,7 @@ contract ReservoirLibraryTest is BaseTest
             lReserve0,
             lReserve1,
             lSwapFee,
-            ExtraData(lToken0PrecisionMultiplier,lToken1PrecisionMultiplier, lA)
+            ExtraData(lToken0PrecisionMultiplier, lToken1PrecisionMultiplier, lA)
         );
         uint256 lActualAmountOut = _stablePair.swap(int256(lAmountIn), true, address(this), bytes(""));
 
@@ -159,8 +146,7 @@ contract ReservoirLibraryTest is BaseTest
         assertEq(lAmountOut, lActualAmountOut);
     }
 
-    function testGetAmountIn_InsufficientLiquidity(uint256 aAmountOut) public
-    {
+    function testGetAmountIn_InsufficientLiquidity(uint256 aAmountOut) public {
         // assume
         uint256 lAmountOut = bound(aAmountOut, 1, type(uint112).max);
 
@@ -169,23 +155,21 @@ contract ReservoirLibraryTest is BaseTest
         ReservoirLibrary.getAmountInConstantProduct(lAmountOut, 0, 0, 0);
 
         vm.expectRevert("RL: INSUFFICIENT_LIQUIDITY");
-        ReservoirLibrary.getAmountInStable(lAmountOut, 0, 0, 0, ExtraData(0,0,0));
+        ReservoirLibrary.getAmountInStable(lAmountOut, 0, 0, 0, ExtraData(0, 0, 0));
     }
 
-    function testGetAmountIn_InsufficientOutputAmount() public
-    {
+    function testGetAmountIn_InsufficientOutputAmount() public {
         // act & revert
         vm.expectRevert("RL: INSUFFICIENT_OUTPUT_AMOUNT");
         ReservoirLibrary.getAmountInConstantProduct(0, 10, 10, 30);
 
         vm.expectRevert("RL: INSUFFICIENT_OUTPUT_AMOUNT");
-        ReservoirLibrary.getAmountInStable(0, 10, 10, 30, ExtraData(0,0,0));
+        ReservoirLibrary.getAmountInStable(0, 10, 10, 30, ExtraData(0, 0, 0));
     }
 
-    function testGetAmountInConstantProduct(uint256 aAmountOut) public
-    {
+    function testGetAmountInConstantProduct(uint256 aAmountOut) public {
         // assume
-        (uint112 lReserve0, uint112 lReserve1, ) = _constantProductPair.getReserves();
+        (uint112 lReserve0, uint112 lReserve1,) = _constantProductPair.getReserves();
         uint256 lAmountOut = bound(aAmountOut, 1000, lReserve1 / 2);
 
         // arrange
@@ -201,10 +185,9 @@ contract ReservoirLibraryTest is BaseTest
         assertEq(lAmountOut, lActualAmountOut);
     }
 
-    function testGetAmountInStable(uint256 aAmountOut) public
-    {
+    function testGetAmountInStable(uint256 aAmountOut) public {
         // assume
-        (uint112 lReserve0, uint112 lReserve1, ) = _stablePair.getReserves();
+        (uint112 lReserve0, uint112 lReserve1,) = _stablePair.getReserves();
         uint256 lAmountOut = bound(aAmountOut, 1, lReserve1 / 2);
 
         // arrange
@@ -219,7 +202,7 @@ contract ReservoirLibraryTest is BaseTest
             lReserve0,
             lReserve1,
             lSwapFee,
-            ExtraData(lToken0PrecisionMultiplier,lToken1PrecisionMultiplier, lA)
+            ExtraData(lToken0PrecisionMultiplier, lToken1PrecisionMultiplier, lA)
         );
         _tokenA.mint(address(_stablePair), lAmountIn);
         uint256 lActualAmountOut = _stablePair.swap(-int256(lAmountOut), false, address(this), bytes(""));
@@ -229,12 +212,11 @@ contract ReservoirLibraryTest is BaseTest
         assertEq(lAmountOut, lActualAmountOut);
     }
 
-    function testGetAmountsOut_CP() public
-    {
+    function testGetAmountsOut_CP() public {
         // assume
         uint256 lAmtBToMint = 1000e18;
         uint256 lAmtCToMint = 10_000_000e18;
-        uint256 lAmtIn = 49382e18;
+        uint256 lAmtIn = 49_382e18;
 
         // arrange
         ConstantProductPair lOtherPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenC), 0));
@@ -255,16 +237,15 @@ contract ReservoirLibraryTest is BaseTest
 
         // assert
         assertEq(lAmounts[0], lAmtIn);
-        assertEq(lAmounts[1], 99797299436610000102);
-        assertEq(lAmounts[2], 904939489708253368940016);
+        assertEq(lAmounts[1], 99_797_299_436_610_000_102);
+        assertEq(lAmounts[2], 904_939_489_708_253_368_940_016);
     }
 
-    function testGetAmountsOut_SP() public
-    {
+    function testGetAmountsOut_SP() public {
         // assume
         uint256 lAmtBToMint = 12_392_592e18;
         uint256 lAmtCToMint = 6_391_019e18;
-        uint256 lAmtIn = 49382e18;
+        uint256 lAmtIn = 49_382e18;
 
         // arrange
         StablePair lOtherPair = StablePair(_createPair(address(_tokenB), address(_tokenC), 1));
@@ -285,12 +266,11 @@ contract ReservoirLibraryTest is BaseTest
 
         // assert
         assertEq(lAmounts[0], lAmtIn);
-        assertEq(lAmounts[1], 99999999589842730809);
-        assertEq(lAmounts[2], 99910889683691058630);
+        assertEq(lAmounts[1], 99_999_999_589_842_730_809);
+        assertEq(lAmounts[2], 99_910_889_683_691_058_630);
     }
 
-    function testGetAmountsOut_MixedCurves() public
-    {
+    function testGetAmountsOut_MixedCurves() public {
         // assume
         uint256 lAmtBToMint = 10_000_000e18;
         uint256 lAmtCToMint = 1000e18;
@@ -315,11 +295,10 @@ contract ReservoirLibraryTest is BaseTest
 
         // assert
         assertEq(lAmounts[0], lAmtIn);
-        assertEq(lAmounts[lAmounts.length - 1], 9969485213337276);
+        assertEq(lAmounts[lAmounts.length - 1], 9_969_485_213_337_276);
     }
 
-    function testGetAmountsIn_CP() public
-    {
+    function testGetAmountsIn_CP() public {
         // arrange
         uint256 lAmtOut = 20e18;
         ConstantProductPair lOtherPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenC), 0));
@@ -339,14 +318,13 @@ contract ReservoirLibraryTest is BaseTest
         uint256[] memory lAmounts = ReservoirLibrary.getAmountsIn(address(_factory), lAmtOut, lPath, lCurveIds);
 
         // assert
-        assertEq(lAmounts[0], 33567905859479375208);
-        assertEq(lAmounts[1], 25075225677031093280);
+        assertEq(lAmounts[0], 33_567_905_859_479_375_208);
+        assertEq(lAmounts[1], 25_075_225_677_031_093_280);
         assertEq(lAmounts[2], lAmtOut);
     }
 
     // cannot use fuzz for mint amounts for new pair because the intermediate amountOuts might exceed the reserve of the next pair
-    function testGetAmountsIn_SP(uint256 aAmtOut) public
-    {
+    function testGetAmountsIn_SP(uint256 aAmtOut) public {
         // assume
         // limiting the max to INITIAL_MINT_AMOUNT / 2 for now as
         // having a large number will cause intermediate amounts to exceed reserves
@@ -374,8 +352,7 @@ contract ReservoirLibraryTest is BaseTest
         assertGt(lAmounts[0], lAmtOut);
     }
 
-    function testGetAmountsIn_MixedCurves() public
-    {
+    function testGetAmountsIn_MixedCurves() public {
         // arrange
         testGetAmountsIn_CP();
         uint256 lAmtOut = 39e18;
@@ -392,8 +369,8 @@ contract ReservoirLibraryTest is BaseTest
         uint256[] memory lAmounts = ReservoirLibrary.getAmountsIn(address(_factory), lAmtOut, lPath, lCurveIds);
 
         // assert
-        assertEq(lAmounts[0], 64202998226586087058);
-        assertEq(lAmounts[1], 64126806649456566421);
+        assertEq(lAmounts[0], 64_202_998_226_586_087_058);
+        assertEq(lAmounts[1], 64_126_806_649_456_566_421);
         assertEq(lAmounts[2], lAmtOut);
     }
 }

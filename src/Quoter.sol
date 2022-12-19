@@ -15,13 +15,11 @@ import { IQuoter, ExtraData } from "src/interfaces/IQuoter.sol";
 import { ReservoirLibrary } from "src/libraries/ReservoirLibrary.sol";
 import { PeripheryImmutableState } from "src/abstract/PeripheryImmutableState.sol";
 
-contract Quoter is IQuoter, PeripheryImmutableState
-{
+contract Quoter is IQuoter, PeripheryImmutableState {
     using FactoryStoreLib for GenericFactory;
     using Bytes32Lib for bytes32;
 
-    constructor(address aFactory, address aWETH) PeripheryImmutableState(aFactory, aWETH)
-    {} // solhint-disable-line no-empty-blocks
+    constructor(address aFactory, address aWETH) PeripheryImmutableState(aFactory, aWETH) { } // solhint-disable-line no-empty-blocks
 
     uint256 public constant MINIMUM_LIQUIDITY = 1e3;
 
@@ -35,8 +33,7 @@ contract Quoter is IQuoter, PeripheryImmutableState
     ) external pure returns (uint256 rAmountOut) {
         if (aCurveId == 0) {
             rAmountOut = ReservoirLibrary.getAmountOutConstantProduct(aAmountIn, aReserveIn, aReserveOut, aSwapFee);
-        }
-        else if (aCurveId == 1) {
+        } else if (aCurveId == 1) {
             rAmountOut = ReservoirLibrary.getAmountOutStable(aAmountIn, aReserveIn, aReserveOut, aSwapFee, aExtraData);
         }
     }
@@ -51,25 +48,24 @@ contract Quoter is IQuoter, PeripheryImmutableState
     ) external pure returns (uint256 rAmountIn) {
         if (aCurveId == 0) {
             rAmountIn = ReservoirLibrary.getAmountInConstantProduct(aAmountOut, aReserveIn, aReserveOut, aSwapFee);
-        }
-        else if (aCurveId == 1) {
+        } else if (aCurveId == 1) {
             rAmountIn = ReservoirLibrary.getAmountInStable(aAmountOut, aReserveIn, aReserveOut, aSwapFee, aExtraData);
         }
     }
 
-    function getAmountsOut(
-        uint256 aAmountIn,
-        address[] calldata aPath,
-        uint256[] calldata aCurveIds
-    ) external view returns(uint256[] memory rAmountsOut) {
+    function getAmountsOut(uint256 aAmountIn, address[] calldata aPath, uint256[] calldata aCurveIds)
+        external
+        view
+        returns (uint256[] memory rAmountsOut)
+    {
         rAmountsOut = ReservoirLibrary.getAmountsOut(address(factory), aAmountIn, aPath, aCurveIds);
     }
 
-    function getAmountsIn(
-        uint256 aAmountOut,
-        address[] calldata aPath,
-        uint256[] calldata aCurveIds
-    ) external view returns(uint256[] memory rAmountsIn) {
+    function getAmountsIn(uint256 aAmountOut, address[] calldata aPath, uint256[] calldata aCurveIds)
+        external
+        view
+        returns (uint256[] memory rAmountsIn)
+    {
         rAmountsIn = ReservoirLibrary.getAmountsIn(address(factory), aAmountOut, aPath, aCurveIds);
     }
 
@@ -81,7 +77,7 @@ contract Quoter is IQuoter, PeripheryImmutableState
         uint256 aAmountBDesired
     ) external view returns (uint256 rAmountA, uint256 rAmountB, uint256 rLiq) {
         address lPair = factory.getPair(aTokenA, aTokenB, aCurveId);
-        (uint256 lReserveA, uint256 lReserveB) = (0,0);
+        (uint256 lReserveA, uint256 lReserveB) = (0, 0);
         uint256 lTokenAPrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(aTokenA);
         uint256 lTokenBPrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(aTokenB);
         uint256 lTotalSupply = 0;
@@ -95,8 +91,7 @@ contract Quoter is IQuoter, PeripheryImmutableState
             (rAmountA, rAmountB) = (aAmountADesired, aAmountBDesired);
             if (aCurveId == 0) {
                 rLiq = FixedPointMathLib.sqrt(rAmountA * rAmountB) - MINIMUM_LIQUIDITY;
-            }
-            else if (aCurveId == 1) {
+            } else if (aCurveId == 1) {
                 uint256 newLiq = ReservoirLibrary.computeStableLiquidity(
                     rAmountA,
                     rAmountB,
@@ -106,21 +101,18 @@ contract Quoter is IQuoter, PeripheryImmutableState
                 );
                 rLiq = newLiq - MINIMUM_LIQUIDITY;
             }
-        }
-        else {
+        } else {
             uint256 lAmountBOptimal = ReservoirLibrary.quote(aAmountADesired, lReserveA, lReserveB);
             if (lAmountBOptimal <= aAmountBDesired) {
                 (rAmountA, rAmountB) = (aAmountADesired, lAmountBOptimal);
-            }
-            else {
+            } else {
                 uint256 lAmountAOptimal = ReservoirLibrary.quote(aAmountBDesired, lReserveB, lReserveA);
                 (rAmountA, rAmountB) = (lAmountAOptimal, aAmountBDesired);
             }
 
             if (aCurveId == 0) {
                 rLiq = Math.min(rAmountA * lTotalSupply / lReserveA, rAmountB * lTotalSupply / lReserveB);
-            }
-            else if (aCurveId == 1) {
+            } else if (aCurveId == 1) {
                 uint256 oldLiq = ReservoirLibrary.computeStableLiquidity(
                     lReserveA,
                     lReserveB,
@@ -140,18 +132,18 @@ contract Quoter is IQuoter, PeripheryImmutableState
         }
     }
 
-    function quoteRemoveLiquidity(
-        address aTokenA,
-        address aTokenB,
-        uint256 aCurveId,
-        uint256 aLiq
-    ) external view returns (uint256 rAmountA, uint256 rAmountB) {
+    function quoteRemoveLiquidity(address aTokenA, address aTokenB, uint256 aCurveId, uint256 aLiq)
+        external
+        view
+        returns (uint256 rAmountA, uint256 rAmountB)
+    {
         address lPair = factory.getPair(aTokenA, aTokenB, aCurveId);
         if (lPair == address(0)) {
-            return (0,0);
+            return (0, 0);
         }
 
-        (uint256 lReserveA, uint256 lReserveB) = ReservoirLibrary.getReserves(address(factory), aTokenA, aTokenB, aCurveId);
+        (uint256 lReserveA, uint256 lReserveB) =
+            ReservoirLibrary.getReserves(address(factory), aTokenA, aTokenB, aCurveId);
         uint256 lTotalSupply = IReservoirPair(lPair).totalSupply();
 
         rAmountA = aLiq * lReserveA / lTotalSupply;

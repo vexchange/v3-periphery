@@ -26,10 +26,10 @@ abstract contract Multicall is IMulticall {
 
             rResults[i] = lResult;
 
-        // cannot realistically overflow on human timescales
-        unchecked {
-            ++i;
-        }
+            // cannot realistically overflow on human timescales
+            unchecked {
+                ++i;
+            }
         }
     }
 }

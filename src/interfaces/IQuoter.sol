@@ -7,7 +7,6 @@ struct ExtraData {
 }
 
 interface IQuoter {
-
     /*//////////////////////////////////////////////////////////////////////////
                                 QUERY METHODS (VIEW)
     //////////////////////////////////////////////////////////////////////////*/
@@ -20,7 +19,7 @@ interface IQuoter {
         uint256 aCurveId,
         uint256 aSwapFee,
         ExtraData calldata aExtraData
-    ) external pure returns(uint256 rAmountOut);
+    ) external pure returns (uint256 rAmountOut);
 
     /// @dev aExtraData for StablePair use, to leave blank for ConstantProductPair
     function getAmountIn(
@@ -30,21 +29,19 @@ interface IQuoter {
         uint256 aCurveId,
         uint256 aSwapFee,
         ExtraData calldata aExtraData
-    ) external pure returns(uint256 rAmountIn);
+    ) external pure returns (uint256 rAmountIn);
 
     /// @dev aPath array of ERC20 tokens to swap into
-    function getAmountsOut(
-        uint256 aAmountIn,
-        address[] calldata aPath,
-        uint256[] calldata aCurveIds
-    ) external view returns(uint256[] memory rAmountsOut);
+    function getAmountsOut(uint256 aAmountIn, address[] calldata aPath, uint256[] calldata aCurveIds)
+        external
+        view
+        returns (uint256[] memory rAmountsOut);
 
     /// @dev aPath array of ERC20 tokens to swap into
-    function getAmountsIn(
-        uint256 aAmountOut,
-        address[] calldata aPath,
-        uint256[] calldata aCurveIds
-    ) external view returns(uint256[] memory rAmountsIn);
+    function getAmountsIn(uint256 aAmountOut, address[] calldata aPath, uint256[] calldata aCurveIds)
+        external
+        view
+        returns (uint256[] memory rAmountsIn);
 
     function quoteAddLiquidity(
         address aTokenA,
@@ -54,10 +51,8 @@ interface IQuoter {
         uint256 aAmountBDesired
     ) external view returns (uint256 rAmountA, uint256 rAmountB, uint256 rLiq);
 
-    function quoteRemoveLiquidity(
-        address aTokenA,
-        address aTokenB,
-        uint256 aCurveId,
-        uint256 aLiq
-    ) external view returns (uint256 rAmountA, uint256 rAmountB);
+    function quoteRemoveLiquidity(address aTokenA, address aTokenB, uint256 aCurveId, uint256 aLiq)
+        external
+        view
+        returns (uint256 rAmountA, uint256 rAmountB);
 }

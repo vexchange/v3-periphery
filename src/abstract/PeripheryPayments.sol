@@ -27,11 +27,7 @@ abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableSta
     }
 
     /// @inheritdoc IPeripheryPayments
-    function sweepToken(
-        address aToken,
-        uint256 aAmountMinimum,
-        address aRecipient
-    ) public payable override {
+    function sweepToken(address aToken, uint256 aAmountMinimum, address aRecipient) public payable override {
         uint256 lBalanceToken = IERC20(aToken).balanceOf(address(this));
         require(lBalanceToken >= aAmountMinimum, "PP: INSUFFICIENT_TOKEN");
 
@@ -49,12 +45,7 @@ abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableSta
     /// @param aPayer The entity that must pay
     /// @param aRecipient The entity that will receive payment
     /// @param aValue The amount to pay
-    function _pay(
-        address aToken,
-        address aPayer,
-        address aRecipient,
-        uint256 aValue
-    ) internal {
+    function _pay(address aToken, address aPayer, address aRecipient, uint256 aValue) internal {
         if (aToken == address(WETH) && address(this).balance >= aValue) {
             // pay with WETH
             IWETH(WETH).deposit{value: aValue}(); // wrap only what is needed to pay

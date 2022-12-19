@@ -20,9 +20,5 @@ interface IPeripheryPayments {
     /// @param aToken The contract address of the aToken which will be transferred to `aRecipient`
     /// @param aAmountMinimum The minimum amount of aToken required for a transfer
     /// @param aRecipient The destination address of the aToken
-    function sweepToken(
-        address aToken,
-        uint256 aAmountMinimum,
-        address aRecipient
-    ) external payable;
+    function sweepToken(address aToken, uint256 aAmountMinimum, address aRecipient) external payable;
 }
