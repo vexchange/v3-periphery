@@ -131,7 +131,7 @@ contract SelfPermitTest is BaseTest {
         _router.selfPermitIfNecessary(address(_testERC20), lValue, lDeadline, lV, lR, lS);
 
         // assert
-        assertEq(_testERC20.allowance(_owner, address(_router)), type(uint256).max);
+        assertEq(_testERC20.allowance(_owner, address(_router)), lValue);
     }
 
     function testSelfPermitAllowed(uint256 aValue) external
