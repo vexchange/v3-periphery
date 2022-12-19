@@ -1,4 +1,4 @@
-pragma solidity 0.8.13;
+pragma solidity ^0.8.0;
 
 import { IReservoirRouter } from "src/interfaces/IReservoirRouter.sol";
 import { IReservoirPair } from "v3-core/src/interfaces/IReservoirPair.sol";

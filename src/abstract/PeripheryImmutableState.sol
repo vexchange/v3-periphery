@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity 0.8.13;
+pragma solidity ^0.8.0;
 
 import { IPeripheryImmutableState } from "src/interfaces/IPeripheryImmutableState.sol";
 import { GenericFactory } from "v3-core/src/GenericFactory.sol";
