@@ -77,7 +77,7 @@ jobs:
       - name: Check gas snapshot
         run: npm run gas:check
 
-coverage:
+  coverage:
     runs-on: ubuntu-latest
 
     steps:
