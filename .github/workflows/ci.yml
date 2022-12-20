@@ -11,7 +11,6 @@ env:
 
 jobs:
   build:
-    name: Build
     runs-on: ubuntu-latest
 
     steps:
@@ -28,7 +27,6 @@ jobs:
         run: forge build
 
   lint:
-    name: Lint
     runs-on: ubuntu-latest
 
     steps:
@@ -48,7 +46,6 @@ jobs:
         run: npm run lint:check
 
   test-unit:
-    name: Test Unit
     runs-on: ubuntu-latest
 
     steps:
@@ -65,7 +62,6 @@ jobs:
         run: npm run test:unit
 
   check-gas:
-    name: Check Gas
     runs-on: ubuntu-latest
 
     steps:
@@ -80,6 +76,20 @@ jobs:
 
       - name: Check gas snapshot
         run: npm run gas:check
+
+coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+      - run: forge coverage --report lcov
+        env:
+          FOUNDRY_PROFILE: coverage
 
   # slither:
   #   name: Scan with Slither
