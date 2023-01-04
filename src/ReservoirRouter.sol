@@ -1,7 +1,7 @@
 pragma solidity ^0.8.0;
 
 import { IReservoirRouter } from "src/interfaces/IReservoirRouter.sol";
-import { IReservoirPair } from "v3-core/src/interfaces/IReservoirPair.sol";
+import { ReservoirPair } from "v3-core/src/ReservoirPair.sol";
 
 import { ReservoirLibrary } from "src/libraries/ReservoirLibrary.sol";
 import { TransferHelper } from "src/libraries/TransferHelper.sol";
@@ -71,7 +71,7 @@ contract ReservoirRouter is
         _pay(aTokenA, msg.sender, lPair, rAmountA);
         _pay(aTokenB, msg.sender, lPair, rAmountB);
 
-        rLiq = IReservoirPair(lPair).mint(aTo);
+        rLiq = ReservoirPair(lPair).mint(aTo);
     }
 
     function removeLiquidity(
@@ -85,8 +85,8 @@ contract ReservoirRouter is
     ) external payable returns (uint256 rAmountA, uint256 rAmountB) {
         require(aTo != address(0), "RR: TO_ZERO_ADDRESS");
         address lPair = ReservoirLibrary.pairFor(address(factory), aTokenA, aTokenB, aCurveId);
-        IReservoirPair(lPair).transferFrom(msg.sender, lPair, aLiq);
-        (uint256 lAmount0, uint256 lAmount1) = IReservoirPair(lPair).burn(aTo);
+        ReservoirPair(lPair).transferFrom(msg.sender, lPair, aLiq);
+        (uint256 lAmount0, uint256 lAmount1) = ReservoirPair(lPair).burn(aTo);
 
         (address lToken0,) = ReservoirLibrary.sortTokens(aTokenA, aTokenB);
         (rAmountA, rAmountB) = aTokenA == lToken0 ? (lAmount0, lAmount1) : (lAmount1, lAmount0);
@@ -111,7 +111,7 @@ contract ReservoirRouter is
             lAmount = lInput == lToken0 ? int256(lAmount) : -int256(lAmount);
 
             lAmount = int256(
-                IReservoirPair(ReservoirLibrary.pairFor(address(factory), lInput, lOutput, aCurveIds[i])).swap(
+                ReservoirPair(ReservoirLibrary.pairFor(address(factory), lInput, lOutput, aCurveIds[i])).swap(
                     lAmount, true, lTo, new bytes(0)
                 )
             );
@@ -157,7 +157,7 @@ contract ReservoirRouter is
 
             int256 lAmount = lOutput == lToken0 ? int256(aAmounts[i + 1]) : -int256(aAmounts[i + 1]);
 
-            IReservoirPair(ReservoirLibrary.pairFor(address(factory), lInput, lOutput, aCurveIds[i])).swap(
+            ReservoirPair(ReservoirLibrary.pairFor(address(factory), lInput, lOutput, aCurveIds[i])).swap(
                 lAmount, false, lTo, new bytes(0)
             );
 

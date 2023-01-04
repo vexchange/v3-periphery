@@ -2,7 +2,7 @@ pragma solidity ^0.8.0;
 
 import { ERC20 } from "solmate/tokens/ERC20.sol";
 
-import { IReservoirPair } from "v3-core/src/interfaces/IReservoirPair.sol";
+import { ReservoirPair } from "v3-core/src/ReservoirPair.sol";
 import { IGenericFactory } from "v3-core/src/interfaces/IGenericFactory.sol";
 import { ExtraData } from "src/interfaces/IQuoter.sol";
 
@@ -35,7 +35,7 @@ library ReservoirLibrary {
         view
         returns (uint256 rSwapFee)
     {
-        rSwapFee = IReservoirPair(pairFor(aFactory, aTokenA, aTokenB, aCurveId)).swapFee();
+        rSwapFee = ReservoirPair(pairFor(aFactory, aTokenA, aTokenB, aCurveId)).swapFee();
     }
 
     // does not support tokens with > 18 decimals
@@ -55,8 +55,8 @@ library ReservoirLibrary {
         returns (uint256 rReserveA, uint256 rReserveB)
     {
         (address lToken0,) = sortTokens(aTokenA, aTokenB);
-        (uint256 lReserve0, uint256 lReserve1,) =
-            IReservoirPair(pairFor(aFactory, aTokenA, aTokenB, aCurveId)).getReserves();
+        (uint256 lReserve0, uint256 lReserve1,,) =
+            ReservoirPair(pairFor(aFactory, aTokenA, aTokenB, aCurveId)).getReserves();
         (rReserveA, rReserveB) = aTokenA == lToken0 ? (lReserve0, lReserve1) : (lReserve1, lReserve0);
     }
 

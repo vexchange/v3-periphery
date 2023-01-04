@@ -8,7 +8,6 @@ import { Math } from "@openzeppelin/utils/math/Math.sol";
 
 import { MathUtils } from "v3-core/src/libraries/MathUtils.sol";
 
-import { IReservoirPair } from "v3-core/src/interfaces/IReservoirPair.sol";
 import { ReservoirLibrary, IGenericFactory } from "src/libraries/ReservoirLibrary.sol";
 import { ReservoirRouter } from "src/ReservoirRouter.sol";
 

@@ -106,7 +106,7 @@ contract ReservoirLibraryTest is BaseTest {
         uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max - INITIAL_MINT_AMOUNT);
 
         // arrange
-        (uint112 lReserve0, uint112 lReserve1,) = _constantProductPair.getReserves();
+        (uint112 lReserve0, uint112 lReserve1,,) = _constantProductPair.getReserves();
         _tokenA.mint(address(_constantProductPair), lAmountIn);
         uint256 lSwapFee = _constantProductPair.swapFee();
 
@@ -124,7 +124,7 @@ contract ReservoirLibraryTest is BaseTest {
         uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max - INITIAL_MINT_AMOUNT);
 
         // arrange
-        (uint112 lReserve0, uint112 lReserve1,) = _stablePair.getReserves();
+        (uint112 lReserve0, uint112 lReserve1,,) = _stablePair.getReserves();
         _tokenA.mint(address(_stablePair), lAmountIn);
         uint256 lSwapFee = _stablePair.swapFee();
         uint64 lToken0PrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(_stablePair.token0());
@@ -169,7 +169,7 @@ contract ReservoirLibraryTest is BaseTest {
 
     function testGetAmountInConstantProduct(uint256 aAmountOut) public {
         // assume
-        (uint112 lReserve0, uint112 lReserve1,) = _constantProductPair.getReserves();
+        (uint112 lReserve0, uint112 lReserve1,,) = _constantProductPair.getReserves();
         uint256 lAmountOut = bound(aAmountOut, 1000, lReserve1 / 2);
 
         // arrange
@@ -187,7 +187,7 @@ contract ReservoirLibraryTest is BaseTest {
 
     function testGetAmountInStable(uint256 aAmountOut) public {
         // assume
-        (uint112 lReserve0, uint112 lReserve1,) = _stablePair.getReserves();
+        (uint112 lReserve0, uint112 lReserve1,,) = _stablePair.getReserves();
         uint256 lAmountOut = bound(aAmountOut, 1, lReserve1 / 2);
 
         // arrange

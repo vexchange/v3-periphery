@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
 import { Math } from "@openzeppelin/utils/math/Math.sol";
 
-import { IReservoirPair } from "v3-core/src/interfaces/IReservoirPair.sol";
+import { ReservoirPair } from "v3-core/src/ReservoirPair.sol";
 import { StablePair } from "v3-core/src/curve/stable/StablePair.sol";
 import { Bytes32Lib } from "v3-core/src/libraries/Bytes32.sol";
 import { FactoryStoreLib } from "v3-core/src/libraries/FactoryStore.sol";
@@ -83,7 +83,7 @@ contract Quoter is IQuoter, PeripheryImmutableState {
         uint256 lTotalSupply = 0;
 
         if (lPair != address(0)) {
-            lTotalSupply = IReservoirPair(lPair).totalSupply();
+            lTotalSupply = ReservoirPair(lPair).totalSupply();
             (lReserveA, lReserveB) = ReservoirLibrary.getReserves(address(factory), aTokenA, aTokenB, aCurveId);
         }
 
@@ -144,7 +144,7 @@ contract Quoter is IQuoter, PeripheryImmutableState {
 
         (uint256 lReserveA, uint256 lReserveB) =
             ReservoirLibrary.getReserves(address(factory), aTokenA, aTokenB, aCurveId);
-        uint256 lTotalSupply = IReservoirPair(lPair).totalSupply();
+        uint256 lTotalSupply = ReservoirPair(lPair).totalSupply();
 
         rAmountA = aLiq * lReserveA / lTotalSupply;
         rAmountB = aLiq * lReserveB / lTotalSupply;
