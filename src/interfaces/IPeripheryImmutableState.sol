@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.0;
 
-import { GenericFactory } from "v3-core/src/GenericFactory.sol";
+import { GenericFactory } from "v3-core/GenericFactory.sol";
 import { IWETH } from "src/interfaces/IWETH.sol";
 
 /// @title Immutable state

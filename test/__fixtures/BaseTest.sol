@@ -4,12 +4,12 @@ import "forge-std/Test.sol";
 
 import { MintableERC20 } from "test/__fixtures/MintableERC20.sol";
 
-import { GenericFactory } from "v3-core/src/GenericFactory.sol";
-import { ReservoirPair } from "v3-core/src/ReservoirPair.sol";
-import { ConstantProductPair } from "v3-core/src/curve/constant-product/ConstantProductPair.sol";
-import { StablePair, AmplificationData } from "v3-core/src/curve/stable/StablePair.sol";
-import { FactoryStoreLib } from "v3-core/src/libraries/FactoryStore.sol";
-import { OracleCaller } from "v3-core/src/oracle/OracleCaller.sol";
+import { GenericFactory } from "v3-core/GenericFactory.sol";
+import { ReservoirPair } from "v3-core/ReservoirPair.sol";
+import { ConstantProductPair } from "v3-core/curve/constant-product/ConstantProductPair.sol";
+import { StablePair, AmplificationData } from "v3-core/curve/stable/StablePair.sol";
+import { FactoryStoreLib } from "v3-core/libraries/FactoryStore.sol";
+import { OracleCaller } from "v3-core/oracle/OracleCaller.sol";
 
 abstract contract BaseTest is Test {
     using FactoryStoreLib for GenericFactory;

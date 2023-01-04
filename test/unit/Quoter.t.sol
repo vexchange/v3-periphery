@@ -6,8 +6,8 @@ import { WETH } from "solmate/tokens/WETH.sol";
 import { Math } from "@openzeppelin/utils/math/Math.sol";
 import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
 
-import { MathUtils } from "v3-core/src/libraries/MathUtils.sol";
-import { StableMath } from "v3-core/src/libraries/StableMath.sol";
+import { MathUtils } from "v3-core/libraries/MathUtils.sol";
+import { StableMath } from "v3-core/libraries/StableMath.sol";
 
 import { Quoter, ExtraData } from "src/Quoter.sol";
 import { ReservoirLibrary } from "src/libraries/ReservoirLibrary.sol";

@@ -1,7 +1,7 @@
 pragma solidity ^0.8.0;
 
 import { IReservoirRouter } from "src/interfaces/IReservoirRouter.sol";
-import { IReservoirPair } from "v3-core/src/interfaces/IReservoirPair.sol";
+import { IReservoirPair } from "v3-core/interfaces/IReservoirPair.sol";
 
 import { ReservoirLibrary } from "src/libraries/ReservoirLibrary.sol";
 import { TransferHelper } from "src/libraries/TransferHelper.sol";

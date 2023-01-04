@@ -6,9 +6,9 @@ import { WETH } from "solmate/tokens/WETH.sol";
 import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
 import { Math } from "@openzeppelin/utils/math/Math.sol";
 
-import { MathUtils } from "v3-core/src/libraries/MathUtils.sol";
+import { MathUtils } from "v3-core/libraries/MathUtils.sol";
 
-import { IReservoirPair } from "v3-core/src/interfaces/IReservoirPair.sol";
+import { IReservoirPair } from "v3-core/interfaces/IReservoirPair.sol";
 import { ReservoirLibrary, IGenericFactory } from "src/libraries/ReservoirLibrary.sol";
 import { ReservoirRouter } from "src/ReservoirRouter.sol";
 
