@@ -6,9 +6,6 @@ remappings     = ["@openzeppelin/=lib/openzeppelin-contracts/contracts/", "v3-co
 match_path     = "test/unit/*.sol"
 verbosity      = 3
 
-[profile.default.fuzz]
-runs = 10_000
-
 [profile.ci.fuzz]
 runs = 10_000
 
