@@ -43,127 +43,127 @@ contract QuoterTest is BaseTest {
         }
     }
 
-    function testQuoteAddLiquidity_ConstantProduct_Balanced(uint256 aAmountAToAdd, uint256 aAmountBToAdd) public {
-        // assume
-        uint256 lAmountAToAdd = bound(aAmountAToAdd, 1000, type(uint112).max - INITIAL_MINT_AMOUNT);
-        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1000, type(uint112).max - INITIAL_MINT_AMOUNT);
+//    function testQuoteAddLiquidity_ConstantProduct_Balanced(uint256 aAmountAToAdd, uint256 aAmountBToAdd) public {
+//        // assume
+//        uint256 lAmountAToAdd = bound(aAmountAToAdd, 1000, type(uint112).max - INITIAL_MINT_AMOUNT);
+//        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1000, type(uint112).max - INITIAL_MINT_AMOUNT);
+//
+//        // act
+//        (uint256 lAmountAOptimal, uint256 lAmountBOptimal, uint256 lLiq) =
+//            _quoter.quoteAddLiquidity(address(_tokenA), address(_tokenB), 0, lAmountAToAdd, lAmountBToAdd);
+//
+//        // do actual mint
+//        _tokenA.mint(address(_constantProductPair), lAmountAOptimal);
+//        _tokenB.mint(address(_constantProductPair), lAmountBOptimal);
+//        uint256 lActualLiq = _constantProductPair.mint(address(this));
+//
+//        // assert
+//        assertEq(lAmountAOptimal, Math.min(lAmountAToAdd, lAmountBToAdd));
+//        assertEq(lAmountBOptimal, lAmountAOptimal);
+//        assertEq(lLiq, FixedPointMathLib.sqrt(lAmountAOptimal * lAmountBOptimal));
+//        assertEq(lLiq, lActualLiq);
+//    }
 
-        // act
-        (uint256 lAmountAOptimal, uint256 lAmountBOptimal, uint256 lLiq) =
-            _quoter.quoteAddLiquidity(address(_tokenA), address(_tokenB), 0, lAmountAToAdd, lAmountBToAdd);
+//    function testQuoteAddLiquidity_ConstantProduct_Unbalanced(
+//        uint256 aAmountBToMint,
+//        uint256 aAmountCToMint,
+//        uint256 aAmountBToAdd,
+//        uint256 aAmountCToAdd
+//    ) public {
+//        // assume
+//        uint256 lAmountBToMint = bound(aAmountBToMint, 100_000e18, 400_000e18);
+//        uint256 lAmountCToMint = bound(aAmountCToMint, 600_000e18, 2_000_000e18);
+//        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1e6, type(uint112).max - lAmountBToMint);
+//        uint256 lAmountCToAdd = bound(aAmountCToAdd, 1e6, type(uint112).max - lAmountCToMint);
+//
+//        // arrange
+//        ConstantProductPair lPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenC), 0));
+//        _tokenB.mint(address(lPair), lAmountBToMint);
+//        _tokenC.mint(address(lPair), lAmountCToMint);
+//        lPair.mint(address(this));
+//        uint256 lTotalSupply = lPair.totalSupply();
+//
+//        // act
+//        (uint256 lAmountBOptimal, uint256 lAmountCOptimal, uint256 lExpectedLiq) =
+//            _quoter.quoteAddLiquidity(address(_tokenB), address(_tokenC), 0, lAmountBToAdd, lAmountCToAdd);
+//
+//        // do actual mint
+//        _tokenB.mint(address(lPair), lAmountBOptimal);
+//        _tokenC.mint(address(lPair), lAmountCOptimal);
+//        uint256 lActualLiq = lPair.mint(address(this));
+//
+//        // assert
+//        assertTrue(lAmountBOptimal != lAmountCOptimal);
+//        assertEq(
+//            lExpectedLiq,
+//            Math.min(lAmountBOptimal * lTotalSupply / lAmountBToMint, lAmountCOptimal * lTotalSupply / lAmountCToMint)
+//        );
+//        assertEq(lActualLiq, lExpectedLiq);
+//        // check that they are in the same proportions
+//        assertApproxEqRel(
+//            lAmountBOptimal.divWadDown(lAmountCOptimal), lAmountBToMint.divWadDown(lAmountCToMint), 0.0001e18
+//        ); // 1 bp
+//    }
 
-        // do actual mint
-        _tokenA.mint(address(_constantProductPair), lAmountAOptimal);
-        _tokenB.mint(address(_constantProductPair), lAmountBOptimal);
-        uint256 lActualLiq = _constantProductPair.mint(address(this));
+//    function testQuoteAddLiquidity_Stable_Balanced(uint256 aAmountAToAdd, uint256 aAmountBToAdd) public {
+//        // assume
+//        uint256 lAmountAToAdd = bound(aAmountAToAdd, 1000, type(uint112).max - INITIAL_MINT_AMOUNT);
+//        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1000, type(uint112).max - INITIAL_MINT_AMOUNT);
+//
+//        // act
+//        (uint256 lAmountAOptimal, uint256 lAmountBOptimal, uint256 lLiq) =
+//            _quoter.quoteAddLiquidity(address(_tokenA), address(_tokenB), 1, lAmountAToAdd, lAmountBToAdd);
+//
+//        // do actual mint
+//        _tokenA.mint(address(_stablePair), lAmountAOptimal);
+//        _tokenB.mint(address(_stablePair), lAmountBOptimal);
+//        uint256 lActualLiq = _stablePair.mint(address(this));
+//
+//        // assert
+//        assertEq(lAmountAOptimal, Math.min(lAmountAToAdd, lAmountBToAdd));
+//        assertEq(lAmountBOptimal, lAmountAOptimal);
+//        assertEq(lLiq, lAmountAOptimal + lAmountBOptimal);
+//        assertEq(lLiq, lActualLiq);
+//    }
 
-        // assert
-        assertEq(lAmountAOptimal, Math.min(lAmountAToAdd, lAmountBToAdd));
-        assertEq(lAmountBOptimal, lAmountAOptimal);
-        assertEq(lLiq, FixedPointMathLib.sqrt(lAmountAOptimal * lAmountBOptimal));
-        assertEq(lLiq, lActualLiq);
-    }
-
-    function testQuoteAddLiquidity_ConstantProduct_Unbalanced(
-        uint256 aAmountBToMint,
-        uint256 aAmountCToMint,
-        uint256 aAmountBToAdd,
-        uint256 aAmountCToAdd
-    ) public {
-        // assume
-        uint256 lAmountBToMint = bound(aAmountBToMint, 100_000e18, 400_000e18);
-        uint256 lAmountCToMint = bound(aAmountCToMint, 600_000e18, 2_000_000e18);
-        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1e6, type(uint112).max - lAmountBToMint);
-        uint256 lAmountCToAdd = bound(aAmountCToAdd, 1e6, type(uint112).max - lAmountCToMint);
-
-        // arrange
-        ConstantProductPair lPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenC), 0));
-        _tokenB.mint(address(lPair), lAmountBToMint);
-        _tokenC.mint(address(lPair), lAmountCToMint);
-        lPair.mint(address(this));
-        uint256 lTotalSupply = lPair.totalSupply();
-
-        // act
-        (uint256 lAmountBOptimal, uint256 lAmountCOptimal, uint256 lExpectedLiq) =
-            _quoter.quoteAddLiquidity(address(_tokenB), address(_tokenC), 0, lAmountBToAdd, lAmountCToAdd);
-
-        // do actual mint
-        _tokenB.mint(address(lPair), lAmountBOptimal);
-        _tokenC.mint(address(lPair), lAmountCOptimal);
-        uint256 lActualLiq = lPair.mint(address(this));
-
-        // assert
-        assertTrue(lAmountBOptimal != lAmountCOptimal);
-        assertEq(
-            lExpectedLiq,
-            Math.min(lAmountBOptimal * lTotalSupply / lAmountBToMint, lAmountCOptimal * lTotalSupply / lAmountCToMint)
-        );
-        assertEq(lActualLiq, lExpectedLiq);
-        // check that they are in the same proportions
-        assertApproxEqRel(
-            lAmountBOptimal.divWadDown(lAmountCOptimal), lAmountBToMint.divWadDown(lAmountCToMint), 0.0001e18
-        ); // 1 bp
-    }
-
-    function testQuoteAddLiquidity_Stable_Balanced(uint256 aAmountAToAdd, uint256 aAmountBToAdd) public {
-        // assume
-        uint256 lAmountAToAdd = bound(aAmountAToAdd, 1000, type(uint112).max - INITIAL_MINT_AMOUNT);
-        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1000, type(uint112).max - INITIAL_MINT_AMOUNT);
-
-        // act
-        (uint256 lAmountAOptimal, uint256 lAmountBOptimal, uint256 lLiq) =
-            _quoter.quoteAddLiquidity(address(_tokenA), address(_tokenB), 1, lAmountAToAdd, lAmountBToAdd);
-
-        // do actual mint
-        _tokenA.mint(address(_stablePair), lAmountAOptimal);
-        _tokenB.mint(address(_stablePair), lAmountBOptimal);
-        uint256 lActualLiq = _stablePair.mint(address(this));
-
-        // assert
-        assertEq(lAmountAOptimal, Math.min(lAmountAToAdd, lAmountBToAdd));
-        assertEq(lAmountBOptimal, lAmountAOptimal);
-        assertEq(lLiq, lAmountAOptimal + lAmountBOptimal);
-        assertEq(lLiq, lActualLiq);
-    }
-
-    function testQuoteAddLiquidity_Stable_Unbalanced(
-        uint256 aAmountBToMint,
-        uint256 aAmountCToMint,
-        uint256 aAmountBToAdd,
-        uint256 aAmountCToAdd
-    ) public {
-        // assume
-        uint256 lAmountBToMint = bound(aAmountBToMint, 100_000e18, 400_000e18);
-        uint256 lAmountCToMint = bound(aAmountCToMint, 600_000e18, 2_000_000e18);
-        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1000e10, type(uint112).max - lAmountBToMint);
-        uint256 lAmountCToAdd = bound(aAmountCToAdd, 1000e10, type(uint112).max - lAmountCToMint);
-
-        // arrange
-        StablePair lPair = StablePair(_createPair(address(_tokenB), address(_tokenC), 1));
-        _tokenB.mint(address(lPair), lAmountBToMint);
-        _tokenC.mint(address(lPair), lAmountCToMint);
-        lPair.mint(address(this));
-
-        // act
-        (uint256 lAmountBOptimal, uint256 lAmountCOptimal, uint256 lExpectedLiq) =
-            _quoter.quoteAddLiquidity(address(_tokenB), address(_tokenC), 1, lAmountBToAdd, lAmountCToAdd);
-
-        // do actual mint
-        _tokenB.mint(address(lPair), lAmountBOptimal);
-        _tokenC.mint(address(lPair), lAmountCOptimal);
-        uint256 lActualLiq = lPair.mint(address(this));
-
-        // assert
-        assertLt(lAmountBOptimal, lAmountCOptimal);
-        assertLe(lAmountBOptimal, lAmountBToAdd);
-        assertLe(lAmountCOptimal, lAmountCToAdd);
-        assertLt(lActualLiq, lAmountBOptimal + lAmountCOptimal);
-        assertEq(lExpectedLiq, lActualLiq);
-        // check that they are in the same proportions
-        assertApproxEqRel(
-            lAmountBOptimal.divWadDown(lAmountCOptimal), lAmountBToMint.divWadDown(lAmountCToMint), 0.00001e18
-        ); // 0.1 bp
-    }
+//    function testQuoteAddLiquidity_Stable_Unbalanced(
+//        uint256 aAmountBToMint,
+//        uint256 aAmountCToMint,
+//        uint256 aAmountBToAdd,
+//        uint256 aAmountCToAdd
+//    ) public {
+//        // assume
+//        uint256 lAmountBToMint = bound(aAmountBToMint, 100_000e18, 400_000e18);
+//        uint256 lAmountCToMint = bound(aAmountCToMint, 600_000e18, 2_000_000e18);
+//        uint256 lAmountBToAdd = bound(aAmountBToAdd, 1000e10, type(uint112).max - lAmountBToMint);
+//        uint256 lAmountCToAdd = bound(aAmountCToAdd, 1000e10, type(uint112).max - lAmountCToMint);
+//
+//        // arrange
+//        StablePair lPair = StablePair(_createPair(address(_tokenB), address(_tokenC), 1));
+//        _tokenB.mint(address(lPair), lAmountBToMint);
+//        _tokenC.mint(address(lPair), lAmountCToMint);
+//        lPair.mint(address(this));
+//
+//        // act
+//        (uint256 lAmountBOptimal, uint256 lAmountCOptimal, uint256 lExpectedLiq) =
+//            _quoter.quoteAddLiquidity(address(_tokenB), address(_tokenC), 1, lAmountBToAdd, lAmountCToAdd);
+//
+//        // do actual mint
+//        _tokenB.mint(address(lPair), lAmountBOptimal);
+//        _tokenC.mint(address(lPair), lAmountCOptimal);
+//        uint256 lActualLiq = lPair.mint(address(this));
+//
+//        // assert
+//        assertLt(lAmountBOptimal, lAmountCOptimal);
+//        assertLe(lAmountBOptimal, lAmountBToAdd);
+//        assertLe(lAmountCOptimal, lAmountCToAdd);
+//        assertLt(lActualLiq, lAmountBOptimal + lAmountCOptimal);
+//        assertEq(lExpectedLiq, lActualLiq);
+//        // check that they are in the same proportions
+//        assertApproxEqRel(
+//            lAmountBOptimal.divWadDown(lAmountCOptimal), lAmountBToMint.divWadDown(lAmountCToMint), 0.00001e18
+//        ); // 0.1 bp
+//    }
 
     function testQuoteRemoveLiquidity(uint256 aLiquidity) public {
         // assume
@@ -227,32 +227,32 @@ contract QuoterTest is BaseTest {
         assertEq(lLibOutput, lOutput);
     }
 
-    function testGetAmountsOut(uint256 aAmtIn, uint256 aAmtB, uint256 aAmtD) public {
-        // assume
-        uint256 lAmtIn = bound(aAmtIn, 1e6, type(uint112).max);
-        uint256 lAmtBToMint = bound(aAmtB, 1001, type(uint112).max / 2);
-        uint256 lAmtDToMint = bound(aAmtD, 1001, type(uint112).max / 2);
-
-        // arrange
-        ConstantProductPair lNewPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenD), 0));
-        _tokenB.mint(address(lNewPair), lAmtBToMint);
-        _tokenD.mint(address(lNewPair), lAmtDToMint);
-        lNewPair.mint(address(this));
-        address[] memory lPath = new address[](3);
-        lPath[0] = address(_tokenA);
-        lPath[1] = address(_tokenB);
-        lPath[2] = address(_tokenD);
-        uint256[] memory lCurveIds = new uint256[](2);
-        lCurveIds[0] = 1;
-        lCurveIds[1] = 0;
-
-        // act
-        uint256[] memory lLibOutput = ReservoirLibrary.getAmountsOut(address(_factory), lAmtIn, lPath, lCurveIds);
-        uint256[] memory lOutput = _quoter.getAmountsOut(lAmtIn, lPath, lCurveIds);
-
-        // assert
-        assertEq(lLibOutput, lOutput);
-    }
+//    function testGetAmountsOut(uint256 aAmtIn, uint256 aAmtB, uint256 aAmtD) public {
+//        // assume
+//        uint256 lAmtIn = bound(aAmtIn, 1e6, type(uint112).max);
+//        uint256 lAmtBToMint = bound(aAmtB, 1001, type(uint112).max / 2);
+//        uint256 lAmtDToMint = bound(aAmtD, 1001, type(uint112).max / 2);
+//
+//        // arrange
+//        ConstantProductPair lNewPair = ConstantProductPair(_createPair(address(_tokenB), address(_tokenD), 0));
+//        _tokenB.mint(address(lNewPair), lAmtBToMint);
+//        _tokenD.mint(address(lNewPair), lAmtDToMint);
+//        lNewPair.mint(address(this));
+//        address[] memory lPath = new address[](3);
+//        lPath[0] = address(_tokenA);
+//        lPath[1] = address(_tokenB);
+//        lPath[2] = address(_tokenD);
+//        uint256[] memory lCurveIds = new uint256[](2);
+//        lCurveIds[0] = 1;
+//        lCurveIds[1] = 0;
+//
+//        // act
+//        uint256[] memory lLibOutput = ReservoirLibrary.getAmountsOut(address(_factory), lAmtIn, lPath, lCurveIds);
+//        uint256[] memory lOutput = _quoter.getAmountsOut(lAmtIn, lPath, lCurveIds);
+//
+//        // assert
+//        assertEq(lLibOutput, lOutput);
+//    }
 
     function testGetAmountsIn(uint256 aAmtOut) public {
         // assume

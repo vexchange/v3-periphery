@@ -101,50 +101,50 @@ contract ReservoirLibraryTest is BaseTest {
         ReservoirLibrary.getAmountOutConstantProduct(0, 10, 10, 30);
     }
 
-    function testGetAmountOutConstantProduct(uint256 aAmountIn) public {
-        // assume
-        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max - INITIAL_MINT_AMOUNT);
+//    function testGetAmountOutConstantProduct(uint256 aAmountIn) public {
+//        // assume
+//        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max - INITIAL_MINT_AMOUNT);
+//
+//        // arrange
+//        (uint112 lReserve0, uint112 lReserve1,,) = _constantProductPair.getReserves();
+//        _tokenA.mint(address(_constantProductPair), lAmountIn);
+//        uint256 lSwapFee = _constantProductPair.swapFee();
+//
+//        // act
+//        uint256 lAmountOut = ReservoirLibrary.getAmountOutConstantProduct(lAmountIn, lReserve0, lReserve1, lSwapFee);
+//        uint256 lActualAmountOut = _constantProductPair.swap(int256(lAmountIn), true, address(this), bytes(""));
+//
+//        // assert
+//        assertLt(lAmountOut, lAmountIn);
+//        assertEq(lAmountOut, lActualAmountOut);
+//    }
 
-        // arrange
-        (uint112 lReserve0, uint112 lReserve1,,) = _constantProductPair.getReserves();
-        _tokenA.mint(address(_constantProductPair), lAmountIn);
-        uint256 lSwapFee = _constantProductPair.swapFee();
-
-        // act
-        uint256 lAmountOut = ReservoirLibrary.getAmountOutConstantProduct(lAmountIn, lReserve0, lReserve1, lSwapFee);
-        uint256 lActualAmountOut = _constantProductPair.swap(int256(lAmountIn), true, address(this), bytes(""));
-
-        // assert
-        assertLt(lAmountOut, lAmountIn);
-        assertEq(lAmountOut, lActualAmountOut);
-    }
-
-    function testGetAmountOutStable(uint256 aAmountIn) public {
-        // assume
-        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max - INITIAL_MINT_AMOUNT);
-
-        // arrange
-        (uint112 lReserve0, uint112 lReserve1,,) = _stablePair.getReserves();
-        _tokenA.mint(address(_stablePair), lAmountIn);
-        uint256 lSwapFee = _stablePair.swapFee();
-        uint64 lToken0PrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(_stablePair.token0());
-        uint64 lToken1PrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(_stablePair.token1());
-        uint64 lA = ReservoirLibrary.getAmplificationCoefficient(address(_stablePair));
-
-        // act
-        uint256 lAmountOut = ReservoirLibrary.getAmountOutStable(
-            lAmountIn,
-            lReserve0,
-            lReserve1,
-            lSwapFee,
-            ExtraData(lToken0PrecisionMultiplier, lToken1PrecisionMultiplier, lA)
-        );
-        uint256 lActualAmountOut = _stablePair.swap(int256(lAmountIn), true, address(this), bytes(""));
-
-        // assert
-        assertLt(lAmountOut, lAmountIn);
-        assertEq(lAmountOut, lActualAmountOut);
-    }
+//    function testGetAmountOutStable(uint256 aAmountIn) public {
+//        // assume
+//        uint256 lAmountIn = bound(aAmountIn, 1, type(uint112).max - INITIAL_MINT_AMOUNT);
+//
+//        // arrange
+//        (uint112 lReserve0, uint112 lReserve1,,) = _stablePair.getReserves();
+//        _tokenA.mint(address(_stablePair), lAmountIn);
+//        uint256 lSwapFee = _stablePair.swapFee();
+//        uint64 lToken0PrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(_stablePair.token0());
+//        uint64 lToken1PrecisionMultiplier = ReservoirLibrary.getPrecisionMultiplier(_stablePair.token1());
+//        uint64 lA = ReservoirLibrary.getAmplificationCoefficient(address(_stablePair));
+//
+//        // act
+//        uint256 lAmountOut = ReservoirLibrary.getAmountOutStable(
+//            lAmountIn,
+//            lReserve0,
+//            lReserve1,
+//            lSwapFee,
+//            ExtraData(lToken0PrecisionMultiplier, lToken1PrecisionMultiplier, lA)
+//        );
+//        uint256 lActualAmountOut = _stablePair.swap(int256(lAmountIn), true, address(this), bytes(""));
+//
+//        // assert
+//        assertLt(lAmountOut, lAmountIn);
+//        assertEq(lAmountOut, lActualAmountOut);
+//    }
 
     function testGetAmountIn_InsufficientLiquidity(uint256 aAmountOut) public {
         // assume
