@@ -1,6 +1,6 @@
 pragma solidity ^0.8.0;
 
-import "v3-core/test/__fixtures/BaseTest.sol";
+import "test/__fixtures/BaseTest.sol";
 
 import { WETH } from "solmate/tokens/WETH.sol";
 import { FixedPointMathLib } from "solmate/utils/FixedPointMathLib.sol";
